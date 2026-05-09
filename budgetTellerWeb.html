@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ระบบติดตามงบประมาณ ศปป.4 กอ.รมน. ปี 2569</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg: #0D1117;
+            --sf: #161B22;
+            --sf2: #21262D;
+            --sf3: #2D333B;
+            --bd: #30363D;
+            --bd2: #444C56;
+            --tx: #E6EDF3;
+            --tx2: #8B949E;
+            --tx3: #6E7681;
+            --blue: #58A6FF;
+            --blue2: #1F6FEB;
+            --bluebg: #0D1B2E;
+            --green: #3FB950;
+            --green2: #196C2E;
+            --greenbg: #0D2119;
+            --amber: #D29922;
+            --amberbg: #271D03;
+            --red: #F85149;
+            --fn: "IBM Plex Sans Thai", sans-serif;
+            --mono: "IBM Plex Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: var(--fn);
+            background: var(--bg);
+            color: var(--tx);
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh
+        }
+
+        .hdr {
+            background: var(--sf);
+            border-bottom: 1px solid var(--bd);
+            position: sticky;
+            top: 0;
+            z-index: 200
+        }
+
+        .hdr-in {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: stretch;
+            height: 54px
+        }
+
+        .hbrand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-right: 20px;
+            border-right: 1px solid var(--bd);
+            flex-shrink: 0
+        }
+
+        .hpill {
+            background: var(--blue2);
+            color: var(--blue);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            letter-spacing: .5px;
+            white-space: nowrap
+        }
+
+        .htitle {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap
+        }
+
+        .hfy {
+            font-size: 10px;
+            color: var(--tx3)
+        }
+
+        .hnav {
+            display: flex;
+            align-items: stretch;
+            margin-left: 4px;
+            overflow-x: auto
+        }
+
+        .nb {
+            font-family: var(--fn);
+            font-size: 12px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 0 14px;
+            cursor: pointer;
+            color: var(--tx2);
+            white-space: nowrap;
+            height: 100%;
+            transition: .15s
+        }
+
+        .nb:hover {
+            color: var(--tx)
+        }
+
+        .nb.on {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            font-weight: 500
+        }
+
+        .hright {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            padding-left: 12px
+        }
+
+        .chip {
+            font-family: var(--mono);
+            font-size: 10px;
+            background: var(--sf2);
+            border: 1px solid var(--bd);
+            border-radius: 20px;
+            padding: 3px 10px;
+            color: var(--tx3);
+            white-space: nowrap
+        }
+
+        .chip.g {
+            border-color: var(--green2);
+            color: var(--green);
+            background: var(--greenbg)
+        }
+
+        .pg {
+            display: none;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px
+        }
+
+        .pg.on {
+            display: block
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px
+        }
+
+        .kpi {
+            background: var(--sf);
+            border: 1px solid var(--bd);
+            border-radius: 10px;
+            padding: 15px 17px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .kpi::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--ac, var(--blue))
+        }
+
+        .kpi.g {
+            --ac: var(--green)
+        }
+
+        .kpi.a {
+            --ac: var(--amber)
+        }
+
+        .kpi.p {
+            --ac: #BC8CFF
+        }
+
+        .klbl {
+            font-size: 10px;
+            color: var(--tx3);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 7px;
+            font-family: var(--mono)
+        }
+
+        .kval {
+            font-size: 22px;
+            font-weight: 600;
+            font-family: var(--mono);
+            line-height: 1;
+            color: var(--tx)
+        }
+
+        .ksub {
+            font-size: 11px;
+            color: var(--tx3);
+            margin-top: 4px
+        }
+
+        .kbar {
+            height: 3px;
+            background: var(--sf3);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden
+        }
+
+        .kfill {
+            height: 100%;
+            border-radius: 2px;
+            background: var(--ac, var(--blue));
+            transition: width .8s
+        }
+
+        .g2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 14px
+        }
+
+        .card {
+            background: var(--sf);
+            border: 1px solid var(--bd);
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 14px
+        }
+
+        .ctit {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--tx);
+            margin-bottom: 12px
+        }
+
+        .ch {
+            position: relative;
+            height: 210px
+        }
+
+        .ch-t {
+            position: relative;
+            height: 270px
+        }
+
+        .tbl-w {
+            overflow-x: auto
+        }
+
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px
+        }
+
+        .tbl th {
+            padding: 6px 8px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--tx3);
+            border-bottom: 1px solid var(--bd);
+            white-space: nowrap;
+            font-family: var(--mono);
+            background: var(--sf2)
+        }
+
+        .tbl th.r,
+        .tbl td.r {
+            text-align: right
+        }
+
+        .tbl th.c,
+        .tbl td.c {
+            text-align: center
+        }
+
+        .tbl td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--bd);
+            vertical-align: middle;
+            color: var(--tx2)
+        }
+
+        .tbl td.hi {
+            color: var(--tx);
+            font-weight: 500
+        }
+
+        .tbl tr:last-child td {
+            border-bottom: none
+        }
+
+        .tbl tbody tr:hover td {
+            background: rgba(88, 166, 255, .04)
+        }
+
+        .tbl .grp-hdr th {
+            background: var(--sf3);
+            font-size: 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--bd2)
+        }
+
+        .ib {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 70px
+        }
+
+        .ib-t {
+            flex: 1;
+            height: 3px;
+            background: var(--sf3);
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .ib-f {
+            height: 100%;
+            border-radius: 2px;
+            background: var(--blue)
+        }
+
+        .ib-f.g {
+            background: var(--green)
+        }
+
+        .ibp {
+            font-size: 10px;
+            color: var(--tx3);
+            min-width: 28px;
+            text-align: right;
+            font-family: var(--mono)
+        }
+
+        .bdg {
+            display: inline-block;
+            font-size: 9px;
+            font-family: var(--mono);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500
+        }
+
+        .bdg-done {
+            background: var(--greenbg);
+            color: var(--green);
+            border: 1px solid var(--green2)
+        }
+
+        .bdg-part {
+            background: var(--amberbg);
+            color: var(--amber);
+            border: 1px solid #6e4c00
+        }
+
+        .bdg-none {
+            background: var(--sf2);
+            color: var(--tx3);
+            border: 1px solid var(--bd)
+        }
+
+        .w-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            flex-shrink: 0
+        }
+
+        .fbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 12px
+        }
+
+        .fbar label {
+            font-size: 10px;
+            color: var(--tx3);
+            display: block;
+            margin-bottom: 3px;
+            font-family: var(--mono)
+        }
+
+        .fbar select,
+        .fbar input {
+            font-family: var(--fn);
+            font-size: 12px;
+            background: var(--sf2);
+            border: 1px solid var(--bd);
+            border-radius: 7px;
+            padding: 5px 9px;
+            height: 32px;
+            color: var(--tx);
+            outline: none
+        }
+
+        .fbar select:focus,
+        .fbar input:focus {
+            border-color: var(--blue)
+        }
+
+        .btn {
+            font-family: var(--fn);
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid var(--bd);
+            border-radius: 7px;
+            padding: 5px 12px;
+            height: 32px;
+            background: var(--sf2);
+            color: var(--tx2);
+            white-space: nowrap
+        }
+
+        .btn:hover {
+            border-color: var(--bd2);
+            color: var(--tx)
+        }
+
+        .btn-blue {
+            background: var(--blue2);
+            color: var(--blue);
+            border-color: var(--blue2)
+        }
+
+        .btn-green {
+            background: var(--green2);
+            color: var(--green);
+            border-color: var(--green2)
+        }
+
+        .btn-amber {
+            background: #4a3500;
+            color: var(--amber);
+            border-color: #6e4c00
+        }
+
+        .pgr {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            padding: 10px 14px;
+            border-top: 1px solid var(--bd);
+            font-size: 11px;
+            color: var(--tx3)
+        }
+
+        .pgr button {
+            min-width: 28px;
+            font-family: var(--fn);
+            font-size: 11px;
+            border: 1px solid var(--bd);
+            border-radius: 5px;
+            padding: 3px 7px;
+            background: var(--sf2);
+            color: var(--tx2);
+            cursor: pointer
+        }
+
+        .pgr button:disabled {
+            opacity: .35;
+            cursor: default
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        .vbtn {
+            font-family: var(--fn);
+            font-size: 11px;
+            cursor: pointer;
+            border: 1px solid var(--bd);
+            border-radius: 6px;
+            padding: 4px 10px;
+            background: var(--sf2);
+            color: var(--tx2)
+        }
+
+        .vbtn.on {
+            background: var(--blue2);
+            color: var(--blue);
+            border-color: var(--blue2)
+        }
+
+        .dropz {
+            border: 2px dashed var(--bd);
+            border-radius: 10px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s;
+            background: var(--sf);
+            margin-bottom: 14px
+        }
+
+        .dropz:hover,
+        .dropz.drag {
+            border-color: var(--blue);
+            background: var(--bluebg)
+        }
+
+        .dropz input {
+            display: none
+        }
+
+        .impres {
+            background: var(--sf);
+            border: 1px solid var(--bd);
+            border-radius: 10px;
+            padding: 14px;
+            display: none;
+            margin-bottom: 14px
+        }
+
+        .impres.on {
+            display: block
+        }
+
+        .srow {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 8px
+        }
+
+        .si {
+            font-size: 12px;
+            color: var(--tx2)
+        }
+
+        .si strong {
+            color: var(--tx);
+            font-family: var(--mono)
+        }
+
+        .loglist {
+            list-style: none;
+            max-height: 130px;
+            overflow-y: auto;
+            border-top: 1px solid var(--bd);
+            margin-top: 8px;
+            padding-top: 6px
+        }
+
+        .loglist li {
+            font-size: 11px;
+            font-family: var(--mono);
+            padding: 2px 0;
+            border-bottom: 1px solid var(--bd);
+            color: var(--tx3)
+        }
+
+        .loglist li:last-child {
+            border-bottom: none
+        }
+
+        .lok {
+            color: var(--green)
+        }
+
+        .lwarn {
+            color: var(--amber)
+        }
+
+        .lerr {
+            color: var(--red)
+        }
+
+        .infobox {
+            background: var(--bluebg);
+            border: 1px solid var(--blue2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #7db8f7;
+            margin-bottom: 12px;
+            line-height: 1.6
+        }
+
+        .infobox code {
+            background: rgba(88, 166, 255, .15);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-family: var(--mono)
+        }
+
+        .hist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--bd);
+            font-size: 12px;
+            color: var(--tx2)
+        }
+
+        .hist-item:last-child {
+            border-bottom: none
+        }
+
+        footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 10px;
+            color: var(--tx3);
+            border-top: 1px solid var(--bd);
+            margin-top: 4px;
+            font-family: var(--mono)
+        }
+
+        @media(max-width:800px) {
+            .g2 {
+                grid-template-columns: 1fr
+            }
+
+            .hright {
+                display: none
+            }
+        }
+
+
+        /* =========================================================
+   Responsive Layer v4 for budget_2569_3
+   Desktop = original layout / Mobile = app-like dashboard
+   ========================================================= */
+        @media (max-width: 900px) {
+
+            html,
+            body {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden !important
+            }
+
+            body {
+                -webkit-text-size-adjust: 100%;
+                font-size: 13px;
+                line-height: 1.55
+            }
+
+            .hdr {
+                position: static !important;
+                width: 100%;
+                overflow: hidden
+            }
+
+            .hdr-in {
+                width: 100%;
+                max-width: 100%;
+                height: auto !important;
+                display: block !important;
+                padding: 16px 18px 18px !important;
+                overflow: visible !important
+            }
+
+            .hbrand {
+                width: 100%;
+                height: auto !important;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border-right: none !important;
+                border-bottom: 1px solid var(--bd);
+                padding: 0 0 14px !important;
+                margin: 0 0 14px !important
+            }
+
+            .hbrand>div {
+                min-width: 0;
+                flex: 1
+            }
+
+            .hpill {
+                flex: 0 0 auto;
+                font-size: 11px !important;
+                padding: 5px 12px !important;
+                border-radius: 9px !important
+            }
+
+            .htitle {
+                white-space: normal !important;
+                overflow-wrap: anywhere;
+                font-size: 15px !important;
+                line-height: 1.25 !important
+            }
+
+            .hfy {
+                font-size: 11px !important;
+                line-height: 1.25 !important
+            }
+
+            .hnav {
+                width: 100%;
+                max-width: 100%;
+                margin: 0 !important;
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+                overflow: visible !important
+            }
+
+            .nb {
+                width: 100% !important;
+                min-width: 0 !important;
+                height: 44px !important;
+                padding: 0 8px !important;
+                border: 1px solid var(--bd) !important;
+                border-radius: 12px !important;
+                border-bottom: 1px solid var(--bd) !important;
+                background: var(--sf2) !important;
+                font-size: 13px !important;
+                white-space: nowrap !important;
+                overflow: hidden;
+                text-overflow: ellipsis
+            }
+
+            .nb.on {
+                color: var(--blue) !important;
+                border-color: var(--blue) !important;
+                background: var(--bluebg) !important
+            }
+
+            .hright {
+                display: none !important
+            }
+
+            .pg {
+                width: 100%;
+                max-width: 100%;
+                padding: 18px !important;
+                overflow: hidden !important
+            }
+
+            .kpis {
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+                margin-bottom: 18px !important
+            }
+
+            .kpi {
+                width: 100%;
+                padding: 18px 20px !important;
+                border-radius: 14px !important
+            }
+
+            .klbl {
+                font-size: 12px !important;
+                text-transform: none !important;
+                letter-spacing: 0 !important;
+                line-height: 1.35 !important
+            }
+
+            .kval {
+                font-size: 32px !important;
+                letter-spacing: 1px !important;
+                line-height: 1.15 !important;
+                word-break: break-word
+            }
+
+            .ksub {
+                font-size: 14px !important;
+                line-height: 1.35 !important
+            }
+
+            .kbar {
+                height: 5px !important;
+                margin-top: 12px !important
+            }
+
+            .g2 {
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+                margin-bottom: 14px !important
+            }
+
+            .card {
+                padding: 16px !important;
+                border-radius: 14px !important;
+                margin-bottom: 14px !important;
+                overflow: hidden !important
+            }
+
+            .ctit {
+                font-size: 15px !important;
+                line-height: 1.35 !important;
+                margin-bottom: 12px !important
+            }
+
+            .ch {
+                height: 260px !important;
+                min-width: 0 !important
+            }
+
+            .ch-t {
+                height: 300px !important;
+                min-width: 0 !important
+            }
+
+            canvas {
+                max-width: 100% !important
+            }
+
+            .tbl-w {
+                width: 100%;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                border-radius: 10px
+            }
+
+            .tbl {
+                min-width: 760px !important;
+                font-size: 11px !important
+            }
+
+            .tbl th,
+            .tbl td {
+                padding: 8px 9px !important;
+                white-space: nowrap
+            }
+
+            .tbl td:first-child,
+            .tbl th:first-child {
+                position: sticky;
+                left: 0;
+                background: var(--sf);
+                z-index: 1
+            }
+
+            .tbl th:first-child {
+                background: var(--sf2);
+                z-index: 2
+            }
+
+            .tbl .grp-hdr th:first-child {
+                position: static
+            }
+
+            .ib {
+                min-width: 96px
+            }
+
+            .fbar {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+                align-items: end !important
+            }
+
+            .fbar>div {
+                min-width: 0 !important
+            }
+
+            .fbar select,
+            .fbar input {
+                width: 100% !important;
+                height: 38px !important;
+                font-size: 13px !important
+            }
+
+            .fbar .btn,
+            .fbar button {
+                height: 38px !important;
+                width: 100%
+            }
+
+            .view-toggle {
+                grid-column: 1/-1 !important;
+                margin-left: 0 !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important
+            }
+
+            .view-toggle span {
+                grid-column: 1/-1 !important
+            }
+
+            .vbtn {
+                width: 100%;
+                height: 38px;
+                font-size: 12px !important
+            }
+
+            #fcnt {
+                grid-column: 1/-1 !important;
+                text-align: left;
+                font-size: 11px !important
+            }
+
+            .pgr {
+                padding: 10px 12px !important;
+                gap: 8px !important;
+                flex-wrap: wrap !important
+            }
+
+            .pgr button {
+                min-width: 42px !important;
+                height: 32px !important
+            }
+
+            #dTotal {
+                margin-left: 0 !important;
+                width: 100%;
+                text-align: left
+            }
+
+            .dropz {
+                padding: 24px 14px !important;
+                margin-bottom: 14px !important
+            }
+
+            .infobox {
+                font-size: 12px !important;
+                padding: 12px !important;
+                overflow-wrap: anywhere
+            }
+
+            .srow {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 7px !important
+            }
+
+            .si {
+                font-size: 12px !important;
+                overflow-wrap: anywhere
+            }
+
+            .impres {
+                padding: 12px !important
+            }
+
+            .loglist {
+                max-height: 170px !important
+            }
+
+            .hist-item {
+                align-items: flex-start;
+                font-size: 12px;
+                line-height: 1.4
+            }
+
+            footer {
+                font-size: 10px !important;
+                padding: 14px 12px !important;
+                line-height: 1.5 !important
+            }
+        }
+
+        @media (max-width: 520px) {
+            body {
+                font-size: 12px
+            }
+
+            .hdr-in {
+                padding: 14px 12px 16px !important
+            }
+
+            .hbrand {
+                gap: 10px !important;
+                padding-bottom: 12px !important;
+                margin-bottom: 12px !important
+            }
+
+            .hpill {
+                font-size: 10px !important;
+                padding: 4px 10px !important
+            }
+
+            .htitle {
+                font-size: 14px !important
+            }
+
+            .hnav {
+                gap: 8px !important
+            }
+
+            .nb {
+                height: 42px !important;
+                font-size: 12px !important;
+                border-radius: 11px !important
+            }
+
+            .pg {
+                padding: 12px !important
+            }
+
+            .kpis {
+                gap: 12px !important
+            }
+
+            .kpi {
+                padding: 16px 18px !important
+            }
+
+            .kval {
+                font-size: 30px !important
+            }
+
+            .ksub {
+                font-size: 13px !important
+            }
+
+            .card {
+                padding: 14px !important
+            }
+
+            .ch {
+                height: 245px !important
+            }
+
+            .ch-t {
+                height: 285px !important
+            }
+
+            .tbl {
+                min-width: 820px !important;
+                font-size: 10.5px !important
+            }
+
+            .fbar {
+                grid-template-columns: 1fr !important
+            }
+
+            .view-toggle {
+                grid-template-columns: 1fr !important
+            }
+        }
+
+        @media (max-width: 380px) {
+            .hdr-in {
+                padding: 12px 10px 14px !important
+            }
+
+            .pg {
+                padding: 10px !important
+            }
+
+            .nb {
+                height: 40px !important;
+                font-size: 11.5px !important
+            }
+
+            .kval {
+                font-size: 27px !important
+            }
+
+            .card {
+                padding: 12px !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="hdr">
+        <div class="hdr-in">
+            <div class="hbrand">
+                <span class="hpill">ศปป.4</span>
+                <div>
+                    <div class="htitle">ระบบติดตามงบประมาณ กอ.รมน.</div>
+                    <div class="hfy">ปีงบประมาณ 2569</div>
+                </div>
+            </div>
+            <nav class="hnav">
+                <button class="nb on" onclick="goTab('overview',this)">ภาพรวม</button>
+                <button class="nb" onclick="goTab('bywork',this)">ตามงาน</button>
+                <button class="nb" onclick="goTab('byregion',this)">ตามภาค</button>
+                <button class="nb" onclick="goTab('detail',this)">รายหน่วย</button>
+                <button class="nb" onclick="goTab('import',this)">&#8679; อัพเดทรายเดือน</button>
+            </nav>
+            <div class="hright">
+                <span class="chip" id="hUpd">-</span>
+                <span class="chip g" id="hPct">-</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <div id="pg-overview" class="pg on">
+        <div class="kpis">
+            <div class="kpi">
+                <div class="klbl">งบประมาณรวม</div>
+                <div class="kval" id="k-alloc">-</div>
+                <div class="ksub">บาท</div>
+            </div>
+            <div class="kpi g">
+                <div class="klbl">เบิกจ่ายแล้ว</div>
+                <div class="kval" id="k-disb">-</div>
+                <div class="ksub" id="k-dsub">-</div>
+                <div class="kbar">
+                    <div class="kfill" id="kbar" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="kpi a">
+                <div class="klbl">คงเหลือ</div>
+                <div class="kval" id="k-rem">-</div>
+                <div class="ksub" id="k-rsub">-</div>
+            </div>
+            <div class="kpi p">
+                <div class="klbl">รายการที่เบิกแล้ว</div>
+                <div class="kval" id="k-cnt">-</div>
+                <div class="ksub">จาก 353 รายการ (หน่วย x งาน)</div>
+            </div>
+        </div>
+        <div class="g2">
+            <div class="card">
+                <div class="ctit">งบจัดสรร vs เบิกจ่าย ตามภาค</div>
+                <div class="ch"><canvas id="cReg"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="ctit">สัดส่วนงบตาม 5 งานหลัก</div>
+                <div class="ch"><canvas id="cPie"></canvas></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="ctit">สรุปตามภาค</div>
+            <div class="tbl-w">
+                <table class="tbl" id="tReg"></table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="ctit">สรุปตาม 5 งาน</div>
+            <div class="tbl-w">
+                <table class="tbl" id="tWork"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- BY WORK -->
+    <div id="pg-bywork" class="pg">
+        <div class="card">
+            <div class="ctit">จัดสรร vs เบิกจ่าย แยกตาม 5 งานหลัก</div>
+            <div class="ch-t"><canvas id="cWork"></canvas></div>
+        </div>
+        <div class="g2" id="workCards"></div>
+    </div>
+
+    <!-- BY REGION -->
+    <div id="pg-byregion" class="pg">
+        <div class="card">
+            <div class="ctit">งบตามภาค x งาน</div>
+            <div class="ch-t"><canvas id="cRW"></canvas></div>
+        </div>
+        <div class="g2" id="regCards"></div>
+    </div>
+
+    <!-- DETAIL -->
+    <div id="pg-detail" class="pg">
+        <div class="fbar">
+            <div><label>ภาค</label><select id="fReg" onchange="fdt()">
+                    <option value="">ทุกภาค</option>
+                </select></div>
+            <div id="fWorkWrap"><label>งาน</label><select id="fWork" onchange="fdt()">
+                    <option value="">ทุกงาน</option>
+                </select></div>
+            <div><label>สถานะ</label><select id="fStat" onchange="fdt()">
+                    <option value="">ทั้งหมด</option>
+                    <option value="done">เบิกครบ</option>
+                    <option value="part">บางส่วน</option>
+                    <option value="none">ยังไม่เบิก</option>
+                </select></div>
+            <div><label>ค้นหา</label><input id="fQ" placeholder="ชื่อหน่วย..." oninput="fdt()" style="width:140px">
+            </div>
+            <div><label>เรียงตาม</label><select id="fSort" onchange="fdt()">
+                    <option value="ad">จัดสรร มาก-น้อย</option>
+                    <option value="dd">เบิก มาก-น้อย</option>
+                    <option value="pd">%เบิก มาก-น้อย</option>
+                    <option value="pa">%เบิก น้อย-มาก</option>
+                </select></div>
+            <button class="btn" onclick="cdt()">ล้าง</button>
+            <div class="view-toggle" style="margin-left:auto">
+                <span style="font-size:11px;color:var(--tx3)">มุมมอง:</span>
+                <button class="vbtn on" data-v="pivot" onclick="setView('pivot')">แสดงตามหน่วย</button>
+                <button class="vbtn" data-v="row" onclick="setView('row')">แสดงตามงาน</button>
+            </div>
+            <span id="fcnt" style="font-size:11px;color:var(--tx3);align-self:center"></span>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+            <div class="tbl-w">
+                <table class="tbl" id="tDet"></table>
+            </div>
+            <div class="pgr">
+                <button onclick="dtp(-1)" id="dPrev">&#8592;</button><span id="dInfo"></span>
+                <button onclick="dtp(1)" id="dNext">&#8594;</button>
+                <span style="margin-left:auto;font-size:10px;color:var(--tx3)" id="dTotal"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPORT -->
+    <div id="pg-import" class="pg">
+        <div class="card">
+            <div class="ctit">&#8679; นำเข้าผลการเบิกจ่ายรายเดือน</div>
+            <div class="infobox"><strong>รูปแบบไฟล์ที่รองรับ (.xlsx):</strong> ต้องมีคอลัมน์ <code>province_code</code>,
+                <code>work_id</code>, <code>disbursed_amount</code>, <code>disbursement_month</code><br>ระบบจะ
+                <strong>แทนที่</strong> ยอดเบิกจ่ายด้วยข้อมูลใหม่ทั้งหมด — จับคู่ด้วย province_code + work_id</div>
+            <div class="dropz" id="dropz" onclick="document.getElementById('fin').click()" ondragover="dov(event,1)"
+                ondragleave="dov(event,0)" ondrop="ddr(event)">
+                <input type="file" id="fin" accept=".xlsx" onchange="hfile(this.files[0])">
+                <div style="font-size:30px;margin-bottom:8px">&#128194;</div>
+                <div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:4px">คลิกเพื่อเลือกไฟล์
+                    หรือลากวางที่นี่</div>
+                <div style="font-size:12px;color:var(--tx3)">รองรับไฟล์ .xlsx เท่านั้น</div>
+            </div>
+            <div class="impres" id="impres">
+                <div class="srow">
+                    <div class="si">ไฟล์: <strong id="irF">-</strong></div>
+                    <div class="si">แถว: <strong id="irR">-</strong></div>
+                    <div class="si">อัพเดทได้: <strong id="irOk" style="color:var(--green)">-</strong></div>
+                    <div class="si">ไม่พบรหัส: <strong id="irMs" style="color:var(--amber)">-</strong></div>
+                    <div class="si">เดือน: <strong id="irMon">-</strong></div>
+                </div>
+                <ul class="loglist" id="irLog"></ul>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+                    <button class="btn btn-green" id="btnOk" onclick="doImport()" style="display:none">&#10003;
+                        ยืนยันอัพเดท</button>
+                    <button class="btn" onclick="cancelImp()">ยกเลิก</button>
+                    <button class="btn btn-amber" onclick="dlUpd()">&#8681; CSV ล่าสุด</button>
+                </div>
+            </div>
+            <div style="margin-top:16px">
+                <div class="ctit" style="margin-bottom:8px;font-size:12px">ประวัติการนำเข้า</div>
+                <div id="hist" style="font-size:12px;color:var(--tx3)">ยังไม่มีประวัติ</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="ctit" style="margin-bottom:10px">ดาวน์โหลด Template</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-blue" onclick="dlTpl()">&#8681; Template (.csv)</button>
+                <button class="btn" onclick="dlAll()">&#8681; ข้อมูลทั้งหมด (.csv)</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>ศูนย์ประสานการปฏิบัติที่ 4 กองอำนวยการรักษาความมั่นคงภายในราชอาณาจักร (กอ.รมน.) — ปีงบประมาณ 2569</footer>
+
+    <script>
+        const S0 = { "total_alloc": 37351500, "total_disb": 23274231, "total_rows": 353, "done_rows": 270, "last_update": "เมษายน 2569", "by_region": [{ "region_name": "ภาค1", "allocated": 9123380, "disbursed": 5839550, "count": 110 }, { "region_name": "ภาค2", "allocated": 7993400, "disbursed": 5073840, "count": 85 }, { "region_name": "ภาค3", "allocated": 9418390, "disbursed": 6731040, "count": 92 }, { "region_name": "ภาค4", "allocated": 5494900, "disbursed": 3246569, "count": 61 }, { "region_name": "ส่วนกลาง", "allocated": 5321430, "disbursed": 2383232, "count": 5 }], "by_work": [{ "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated": 4860600, "disbursed": 2956487, "count": 82 }, { "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated": 20280500, "disbursed": 12006894, "count": 91 }, { "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated": 5336800, "disbursed": 2745830, "count": 83 }, { "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated": 4368100, "disbursed": 3314600, "count": 78 }, { "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated": 2505500, "disbursed": 2250420, "count": 19 }], "by_rw": [{ "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated": 1622000, "disbursed": 1046800 }, { "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated": 4051600, "disbursed": 2437780 }, { "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated": 2031480, "disbursed": 1237070 }, { "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated": 1418300, "disbursed": 1117900 }, { "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated": 1085900, "disbursed": 570700 }, { "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated": 4533120, "disbursed": 2904600 }, { "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated": 1283380, "disbursed": 712340 }, { "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated": 1091000, "disbursed": 886200 }, { "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated": 969300, "disbursed": 620660 }, { "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated": 4196120, "disbursed": 2909520 }, { "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated": 962620, "disbursed": 321320 }, { "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated": 927350, "disbursed": 744850 }, { "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated": 2363000, "disbursed": 2134690 }, { "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated": 1050180, "disbursed": 590599 }, { "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated": 2785920, "disbursed": 1615220 }, { "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated": 895100, "disbursed": 475100 }, { "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated": 763700, "disbursed": 565650 }, { "region_name": "ส่วนกลาง", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated": 133220, "disbursed": 127728 }, { "region_name": "ส่วนกลาง", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated": 4713740, "disbursed": 2139774 }, { "region_name": "ส่วนกลาง", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated": 164220, "disbursed": 0 }, { "region_name": "ส่วนกลาง", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated": 167750, "disbursed": 0 }, { "region_name": "ส่วนกลาง", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated": 142500, "disbursed": 115730 }], "by_prov": [{ "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_name": "ส่วนกลาง", "allocated": 5321430, "disbursed": 2383232, "count": 5 }, { "province_code": 101900017, "province_name": "กอ.รมน.ภาค 3", "region_name": "ภาค3", "allocated": 825740, "disbursed": 295160, "count": 4 }, { "province_code": 101900014, "province_name": "กอ.รมน.ภาค 2", "region_name": "ภาค2", "allocated": 578540, "disbursed": 138020, "count": 3 }, { "province_code": 101900039, "province_name": "ตาก", "region_name": "ภาค3", "allocated": 538850, "disbursed": 376010, "count": 5 }, { "province_code": 101900040, "province_name": "น่าน", "region_name": "ภาค3", "allocated": 528250, "disbursed": 379610, "count": 5 }, { "province_code": 101900109, "province_name": "กอ.รมน.ภาค 1", "region_name": "ภาค1", "allocated": 519140, "disbursed": 138020, "count": 3 }, { "province_code": 101900080, "province_name": "ลำพูน", "region_name": "ภาค3", "allocated": 517650, "disbursed": 358170, "count": 5 }, { "province_code": 101900078, "province_name": "สุโขทัย", "region_name": "ภาค3", "allocated": 517650, "disbursed": 351410, "count": 5 }, { "province_code": 101900079, "province_name": "พิจิตร", "region_name": "ภาค3", "allocated": 514250, "disbursed": 394770, "count": 5 }, { "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_name": "ภาค3", "allocated": 507050, "disbursed": 403570, "count": 5 }, { "province_code": 101900037, "province_name": "เชียงใหม่", "region_name": "ภาค3", "allocated": 507050, "disbursed": 423850, "count": 5 }, { "province_code": 101900041, "province_name": "พะเยา", "region_name": "ภาค3", "allocated": 503650, "disbursed": 368370, "count": 5 }, { "province_code": 101900077, "province_name": "กำแพงเพชร", "region_name": "ภาค3", "allocated": 503650, "disbursed": 372610, "count": 5 }, { "province_code": 101900082, "province_name": "แพร่", "region_name": "ภาค3", "allocated": 496450, "disbursed": 475250, "count": 5 }, { "province_code": 101900071, "province_name": "นครสวรรค์", "region_name": "ภาค3", "allocated": 493050, "disbursed": 358850, "count": 5 }, { "province_code": 101900081, "province_name": "ลำปาง", "region_name": "ภาค3", "allocated": 489650, "disbursed": 376370, "count": 5 }, { "province_code": 101900070, "province_name": "อุทัยธานี", "region_name": "ภาค3", "allocated": 468450, "disbursed": 326810, "count": 5 }, { "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_name": "ภาค3", "allocated": 447250, "disbursed": 333170, "count": 5 }, { "province_code": 101900042, "province_name": "พิษณุโลก", "region_name": "ภาค3", "allocated": 447250, "disbursed": 332120, "count": 5 }, { "province_code": 101900036, "province_name": "เชียงราย", "region_name": "ภาค3", "allocated": 447250, "disbursed": 378970, "count": 5 }, { "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_name": "ภาค3", "allocated": 447250, "disbursed": 327570, "count": 5 }, { "province_code": 101900069, "province_name": "ชัยนาท", "region_name": "ภาค1", "allocated": 429190, "disbursed": 216370, "count": 4 }, { "province_code": 101900044, "province_name": "ชุมพร", "region_name": "ภาค4", "allocated": 422050, "disbursed": 276170, "count": 4 }, { "province_code": 101900087, "province_name": "นครราชสีมา", "region_name": "ภาค2", "allocated": 411450, "disbursed": 216370, "count": 4 }, { "province_code": 101900092, "province_name": "หนองบัวลำภู", "region_name": "ภาค2", "allocated": 408050, "disbursed": 216370, "count": 4 }, { "province_code": 101900018, "province_name": "กอ.รมน.ภาค 4", "region_name": "ภาค4", "allocated": 404200, "disbursed": 138019, "count": 3 }, { "province_code": 101900074, "province_name": "ชลบุรี", "region_name": "ภาค1", "allocated": 400850, "disbursed": 210010, "count": 4 }, { "province_code": 101900108, "province_name": "บึงกาฬ", "region_name": "ภาค2", "allocated": 400850, "disbursed": 240730, "count": 4 }, { "province_code": 101900065, "province_name": "สุพรรณบุรี", "region_name": "ภาค1", "allocated": 400850, "disbursed": 286770, "count": 4 }, { "province_code": 101900091, "province_name": "สกลนคร", "region_name": "ภาค2", "allocated": 390250, "disbursed": 245170, "count": 4 }, { "province_code": 101900045, "province_name": "ระนอง", "region_name": "ภาค4", "allocated": 390250, "disbursed": 191770, "count": 4 }, { "province_code": 101900073, "province_name": "ระยอง", "region_name": "ภาค1", "allocated": 386850, "disbursed": 216370, "count": 4 }, { "province_code": 101900093, "province_name": "อุดรธานี", "region_name": "ภาค2", "allocated": 386850, "disbursed": 279250, "count": 4 }, { "province_code": 101900035, "province_name": "อำนาจเจริญ", "region_name": "ภาค2", "allocated": 386850, "disbursed": 257510, "count": 4 }, { "province_code": 101900024, "province_name": "ราชบุรี", "region_name": "ภาค1", "allocated": 379650, "disbursed": 273630, "count": 4 }, { "province_code": 101900034, "province_name": "เลย", "region_name": "ภาค2", "allocated": 379650, "disbursed": 315570, "count": 4 }, { "province_code": 101900076, "province_name": "ปราจีนบุรี", "region_name": "ภาค1", "allocated": 376250, "disbursed": 270770, "count": 4 }, { "province_code": 101900098, "province_name": "ภูเก็ต", "region_name": "ภาค4", "allocated": 376250, "disbursed": 262170, "count": 4 }, { "province_code": 101900088, "province_name": "มหาสารคาม", "region_name": "ภาค2", "allocated": 365650, "disbursed": 256370, "count": 4 }, { "province_code": 101900084, "province_name": "กาฬสินธุ์", "region_name": "ภาค2", "allocated": 365650, "disbursed": 210010, "count": 4 }, { "province_code": 101900023, "province_name": "กาญจนบุรี", "region_name": "ภาค1", "allocated": 365650, "disbursed": 263610, "count": 4 }, { "province_code": 101900028, "province_name": "สุรินทร์", "region_name": "ภาค2", "allocated": 365650, "disbursed": 210770, "count": 4 }, { "province_code": 101900032, "province_name": "นครพนม", "region_name": "ภาค2", "allocated": 365650, "disbursed": 216370, "count": 4 }, { "province_code": 101900025, "province_name": "เพชรบุรี", "region_name": "ภาค1", "allocated": 355050, "disbursed": 216370, "count": 4 }, { "province_code": 101900099, "province_name": "ตรัง", "region_name": "ภาค4", "allocated": 355050, "disbursed": 263990, "count": 4 }, { "province_code": 101900096, "province_name": "กระบี่", "region_name": "ภาค4", "allocated": 355050, "disbursed": 252530, "count": 4 }, { "province_code": 101900090, "province_name": "ร้อยเอ็ด", "region_name": "ภาค2", "allocated": 355050, "disbursed": 230770, "count": 4 }, { "province_code": 101900046, "province_name": "สงขลา", "region_name": "ภาค4", "allocated": 351650, "disbursed": 216370, "count": 4 }, { "province_code": 101900027, "province_name": "บุรีรัมย์", "region_name": "ภาค2", "allocated": 341050, "disbursed": 251570, "count": 4 }, { "province_code": 101900050, "province_name": "ปัตตานี", "region_name": "ภาค4", "allocated": 330450, "disbursed": 210010, "count": 4 }, { "province_code": 101900047, "province_name": "ยะลา", "region_name": "ภาค4", "allocated": 330450, "disbursed": 148230, "count": 4 }, { "province_code": 101900021, "province_name": "จันทบุรี", "region_name": "ภาค1", "allocated": 330450, "disbursed": 216370, "count": 4 }, { "province_code": 101900020, "province_name": "สระแก้ว", "region_name": "ภาค1", "allocated": 330450, "disbursed": 183830, "count": 4 }, { "province_code": 101900022, "province_name": "ตราด", "region_name": "ภาค1", "allocated": 330450, "disbursed": 245850, "count": 4 }, { "province_code": 101900033, "province_name": "หนองคาย", "region_name": "ภาค2", "allocated": 330450, "disbursed": 210010, "count": 4 }, { "province_code": 101900026, "province_name": "ประจวบคีรีขันธ์", "region_name": "ภาค1", "allocated": 330450, "disbursed": 272160, "count": 4 }, { "province_code": 101900029, "province_name": "ศรีสะเกษ", "region_name": "ภาค2", "allocated": 330450, "disbursed": 230770, "count": 4 }, { "province_code": 101900030, "province_name": "อุบลราชธานี", "region_name": "ภาค2", "allocated": 330450, "disbursed": 216370, "count": 4 }, { "province_code": 101900031, "province_name": "มุกดาหาร", "region_name": "ภาค2", "allocated": 330450, "disbursed": 281690, "count": 4 }, { "province_code": 101900100, "province_name": "พัทลุง", "region_name": "ภาค4", "allocated": 330450, "disbursed": 73680, "count": 4 }, { "province_code": 101900097, "province_name": "พังงา", "region_name": "ภาค4", "allocated": 330450, "disbursed": 201830, "count": 4 }, { "province_code": 101900094, "province_name": "สุราษฎร์ธานี", "region_name": "ภาค4", "allocated": 330450, "disbursed": 259210, "count": 4 }, { "province_code": 101900049, "province_name": "สตูล", "region_name": "ภาค4", "allocated": 330450, "disbursed": 226970, "count": 4 }, { "province_code": 101900048, "province_name": "นราธิวาส", "region_name": "ภาค4", "allocated": 330450, "disbursed": 210010, "count": 4 }, { "province_code": 101900089, "province_name": "ยโสธร", "region_name": "ภาค2", "allocated": 330450, "disbursed": 226970, "count": 4 }, { "province_code": 101900085, "province_name": "ขอนแก่น", "region_name": "ภาค2", "allocated": 330450, "disbursed": 210010, "count": 4 }, { "province_code": 101900075, "province_name": "นครนายก", "region_name": "ภาค1", "allocated": 330450, "disbursed": 257210, "count": 4 }, { "province_code": 101900063, "province_name": "ฉะเชิงเทรา", "region_name": "ภาค1", "allocated": 330450, "disbursed": 199410, "count": 4 }, { "province_code": 101900068, "province_name": "ลพบุรี", "region_name": "ภาค1", "allocated": 330450, "disbursed": 229770, "count": 4 }, { "province_code": 101900072, "province_name": "สระบุรี", "region_name": "ภาค1", "allocated": 330450, "disbursed": 210010, "count": 4 }, { "province_code": 101900095, "province_name": "นครศรีธรรมราช", "region_name": "ภาค4", "allocated": 330450, "disbursed": 217210, "count": 4 }, { "province_code": 101900086, "province_name": "ชัยภูมิ", "region_name": "ภาค2", "allocated": 312710, "disbursed": 314770, "count": 4 }, { "province_code": 101900058, "province_name": "ปทุมธานี", "region_name": "ภาค1", "allocated": 306250, "disbursed": 210850, "count": 4 }, { "province_code": 101900060, "province_name": "สมุทรสงคราม", "region_name": "ภาค1", "allocated": 263850, "disbursed": 164530, "count": 4 }, { "province_code": 101900061, "province_name": "นครปฐม", "region_name": "ภาค1", "allocated": 253250, "disbursed": 150210, "count": 4 }, { "province_code": 101900064, "province_name": "พระนครศรีอยุธยา", "region_name": "ภาค1", "allocated": 253250, "disbursed": 167170, "count": 4 }, { "province_code": 101900111, "province_name": "กอ.รมน.กทม", "region_name": "ภาค1", "allocated": 253250, "disbursed": 160810, "count": 4 }, { "province_code": 101900059, "province_name": "สมุทรปราการ", "region_name": "ภาค1", "allocated": 253250, "disbursed": 167170, "count": 4 }, { "province_code": 101900057, "province_name": "นนทบุรี", "region_name": "ภาค1", "allocated": 242650, "disbursed": 165170, "count": 4 }, { "province_code": 101900067, "province_name": "สิงห์บุรี", "region_name": "ภาค1", "allocated": 232050, "disbursed": 177170, "count": 4 }, { "province_code": 101900066, "province_name": "อ่างทอง", "region_name": "ภาค1", "allocated": 232050, "disbursed": 167170, "count": 4 }, { "province_code": 101900062, "province_name": "สมุทรสาคร", "region_name": "ภาค1", "allocated": 232050, "disbursed": 165170, "count": 4 }, { "province_code": 101900110, "province_name": "กอ.รมน.ภาค1 สย.3", "region_name": "ภาค1", "allocated": 123000, "disbursed": 94200, "count": 1 }, { "province_code": 101900051, "province_name": "กอ.รมน.ภาค1 สย.2", "region_name": "ภาค1", "allocated": 123000, "disbursed": 94200, "count": 1 }, { "province_code": 101900053, "province_name": "กอ.รมน.ภาค3 สย.2", "region_name": "ภาค3", "allocated": 119600, "disbursed": 49200, "count": 2 }, { "province_code": 101900019, "province_name": "กอ.รมน.ภาค 4 สย.1", "region_name": "ภาค4", "allocated": 98400, "disbursed": 49200, "count": 1 }, { "province_code": 101900015, "province_name": "กอ.รมน.ภาค2 สย.1", "region_name": "ภาค2", "allocated": 98400, "disbursed": 49200, "count": 1 }, { "province_code": 101900016, "province_name": "กอ.รมน.ภาค2 สย.2", "region_name": "ภาค2", "allocated": 98400, "disbursed": 49200, "count": 1 }, { "province_code": 101900054, "province_name": "กอ.รมน.ภาค1 สย.1", "region_name": "ภาค1", "allocated": 98400, "disbursed": 49200, "count": 1 }, { "province_code": 101900052, "province_name": "กอ.รมน.ภาค3 สย.1", "region_name": "ภาค3", "allocated": 98400, "disbursed": 49200, "count": 1 }, { "province_code": 101900103, "province_name": "กอ.รมน.ภาค 4 สย.ทร.", "region_name": "ภาค4", "allocated": 98400, "disbursed": 49200, "count": 1 }] };
+        const R0 = [{ "row_id": 1, "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_code": 0, "region_name": "ส่วนกลาง", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 133220, "disbursed_amount": 127728 }, { "row_id": 2, "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_code": 0, "region_name": "ส่วนกลาง", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 4713740, "disbursed_amount": 2139774 }, { "row_id": 3, "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_code": 0, "region_name": "ส่วนกลาง", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 164220, "disbursed_amount": 0 }, { "row_id": 4, "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_code": 0, "region_name": "ส่วนกลาง", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 167750, "disbursed_amount": 0 }, { "row_id": 5, "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_code": 0, "region_name": "ส่วนกลาง", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 142500, "disbursed_amount": 115730 }, { "row_id": 6, "province_code": 101900111, "province_name": "กอ.รมน.กทม", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 7, "province_code": 101900111, "province_name": "กอ.รมน.กทม", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 8, "province_code": 101900111, "province_name": "กอ.รมน.กทม", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 9, "province_code": 101900111, "province_name": "กอ.รมน.กทม", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 10, "province_code": 101900109, "province_name": "กอ.รมน.ภาค 1", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 41000, "disbursed_amount": 19800 }, { "row_id": 11, "province_code": 101900109, "province_name": "กอ.รมน.ภาค 1", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 172140, "disbursed_amount": 98420 }, { "row_id": 12, "province_code": 101900109, "province_name": "กอ.รมน.ภาค 1", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 306000, "disbursed_amount": 19800 }, { "row_id": 13, "province_code": 101900054, "province_name": "กอ.รมน.ภาค1 สย.1", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 14, "province_code": 101900051, "province_name": "กอ.รมน.ภาค1 สย.2", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 123000, "disbursed_amount": 94200 }, { "row_id": 15, "province_code": 101900110, "province_name": "กอ.รมน.ภาค1 สย.3", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 123000, "disbursed_amount": 94200 }, { "row_id": 16, "province_code": 101900023, "province_name": "กาญจนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 7200 }, { "row_id": 17, "province_code": 101900023, "province_name": "กาญจนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 212460 }, { "row_id": 18, "province_code": 101900023, "province_name": "กาญจนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 19, "province_code": 101900023, "province_name": "กาญจนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 20, "province_code": 101900021, "province_name": "จันทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 98740 }, { "row_id": 21, "province_code": 101900021, "province_name": "จันทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 22, "province_code": 101900021, "province_name": "จันทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 23, "province_code": 101900021, "province_name": "จันทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 24, "province_code": 101900063, "province_name": "ฉะเชิงเทรา", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 25, "province_code": 101900063, "province_name": "ฉะเชิงเทรา", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 26, "province_code": 101900063, "province_name": "ฉะเชิงเทรา", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 27, "province_code": 101900063, "province_name": "ฉะเชิงเทรา", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 33350 }, { "row_id": 28, "province_code": 101900074, "province_name": "ชลบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 29, "province_code": 101900074, "province_name": "ชลบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 73680 }, { "row_id": 30, "province_code": 101900074, "province_name": "ชลบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 31, "province_code": 101900074, "province_name": "ชลบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 32, "province_code": 101900069, "province_name": "ชัยนาท", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 98740 }, { "row_id": 33, "province_code": 101900069, "province_name": "ชัยนาท", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 73680 }, { "row_id": 34, "province_code": 101900069, "province_name": "ชัยนาท", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 35, "province_code": 101900069, "province_name": "ชัยนาท", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 36, "province_code": 101900022, "province_name": "ตราด", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 37, "province_code": 101900022, "province_name": "ตราด", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 109520 }, { "row_id": 38, "province_code": 101900022, "province_name": "ตราด", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 39, "province_code": 101900022, "province_name": "ตราด", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 40, "province_code": 101900075, "province_name": "นครนายก", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 41, "province_code": 101900075, "province_name": "นครนายก", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 120880 }, { "row_id": 42, "province_code": 101900075, "province_name": "นครนายก", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 43, "province_code": 101900075, "province_name": "นครนายก", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 44, "province_code": 101900061, "province_name": "นครปฐม", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 45, "province_code": 101900061, "province_name": "นครปฐม", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 46, "province_code": 101900061, "province_name": "นครปฐม", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 130540, "disbursed_amount": 92380 }, { "row_id": 47, "province_code": 101900061, "province_name": "นครปฐม", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 33350 }, { "row_id": 48, "province_code": 101900057, "province_name": "นนทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 49, "province_code": 101900057, "province_name": "นนทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 50, "province_code": 101900057, "province_name": "นนทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 119940, "disbursed_amount": 98740 }, { "row_id": 51, "province_code": 101900057, "province_name": "นนทบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 41950 }, { "row_id": 52, "province_code": 101900058, "province_name": "ปทุมธานี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 53, "province_code": 101900058, "province_name": "ปทุมธานี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 46960 }, { "row_id": 54, "province_code": 101900058, "province_name": "ปทุมธานี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 172940, "disbursed_amount": 119940 }, { "row_id": 55, "province_code": 101900058, "province_name": "ปทุมธานี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 56, "province_code": 101900026, "province_name": "ประจวบคีรีขันธ์", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 21200 }, { "row_id": 57, "province_code": 101900026, "province_name": "ประจวบคีรีขันธ์", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 120880 }, { "row_id": 58, "province_code": 101900026, "province_name": "ประจวบคีรีขันธ์", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 96730 }, { "row_id": 59, "province_code": 101900026, "province_name": "ประจวบคีรีขันธ์", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 33350 }, { "row_id": 60, "province_code": 101900076, "province_name": "ปราจีนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 14400 }, { "row_id": 61, "province_code": 101900076, "province_name": "ปราจีนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 190820 }, { "row_id": 62, "province_code": 101900076, "province_name": "ปราจีนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 21600 }, { "row_id": 63, "province_code": 101900076, "province_name": "ปราจีนบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 64, "province_code": 101900064, "province_name": "พระนครศรีอยุธยา", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 65, "province_code": 101900064, "province_name": "พระนครศรีอยุธยา", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 66, "province_code": 101900064, "province_name": "พระนครศรีอยุธยา", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 130540, "disbursed_amount": 98740 }, { "row_id": 67, "province_code": 101900064, "province_name": "พระนครศรีอยุธยา", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 68, "province_code": 101900073, "province_name": "ระยอง", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 69, "province_code": 101900073, "province_name": "ระยอง", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 172420 }, { "row_id": 70, "province_code": 101900073, "province_name": "ระยอง", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 71, "province_code": 101900073, "province_name": "ระยอง", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 72, "province_code": 101900024, "province_name": "ราชบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 95560 }, { "row_id": 73, "province_code": 101900024, "province_name": "ราชบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 134120 }, { "row_id": 74, "province_code": 101900024, "province_name": "ราชบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 75, "province_code": 101900024, "province_name": "ราชบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 76, "province_code": 101900068, "province_name": "ลพบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 14400 }, { "row_id": 77, "province_code": 101900068, "province_name": "ลพบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 172420 }, { "row_id": 78, "province_code": 101900068, "province_name": "ลพบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 79, "province_code": 101900068, "province_name": "ลพบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 42950 }, { "row_id": 80, "province_code": 101900059, "province_name": "สมุทรปราการ", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 81, "province_code": 101900059, "province_name": "สมุทรปราการ", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 82, "province_code": 101900059, "province_name": "สมุทรปราการ", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 130540, "disbursed_amount": 98740 }, { "row_id": 83, "province_code": 101900059, "province_name": "สมุทรปราการ", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 84, "province_code": 101900060, "province_name": "สมุทรสงคราม", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 85, "province_code": 101900060, "province_name": "สมุทรสงคราม", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 86, "province_code": 101900060, "province_name": "สมุทรสงคราม", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 130540, "disbursed_amount": 96700 }, { "row_id": 87, "province_code": 101900060, "province_name": "สมุทรสงคราม", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43350 }, { "row_id": 88, "province_code": 101900062, "province_name": "สมุทรสาคร", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 89, "province_code": 101900062, "province_name": "สมุทรสาคร", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 22480 }, { "row_id": 90, "province_code": 101900062, "province_name": "สมุทรสาคร", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 91, "province_code": 101900062, "province_name": "สมุทรสาคร", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 92, "province_code": 101900072, "province_name": "สระบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 93, "province_code": 101900072, "province_name": "สระบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 94, "province_code": 101900072, "province_name": "สระบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 95, "province_code": 101900072, "province_name": "สระบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 96, "province_code": 101900020, "province_name": "สระแก้ว", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 90680 }, { "row_id": 97, "province_code": 101900020, "province_name": "สระแก้ว", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 49200 }, { "row_id": 98, "province_code": 101900020, "province_name": "สระแก้ว", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 99, "province_code": 101900020, "province_name": "สระแก้ว", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 100, "province_code": 101900067, "province_name": "สิงห์บุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 10600 }, { "row_id": 101, "province_code": 101900067, "province_name": "สิงห์บุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 13280 }, { "row_id": 102, "province_code": 101900067, "province_name": "สิงห์บุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 103, "province_code": 101900067, "province_name": "สิงห์บุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 54550 }, { "row_id": 104, "province_code": 101900065, "province_name": "สุพรรณบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 21200 }, { "row_id": 105, "province_code": 101900065, "province_name": "สุพรรณบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 122880 }, { "row_id": 106, "province_code": 101900065, "province_name": "สุพรรณบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 130540, "disbursed_amount": 98740 }, { "row_id": 107, "province_code": 101900065, "province_name": "สุพรรณบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 108, "province_code": 101900066, "province_name": "อ่างทอง", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 109, "province_code": 101900066, "province_name": "อ่างทอง", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 46960, "disbursed_amount": 24480 }, { "row_id": 110, "province_code": 101900066, "province_name": "อ่างทอง", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 111, "province_code": 101900066, "province_name": "อ่างทอง", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 112, "province_code": 101900025, "province_name": "เพชรบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 113, "province_code": 101900025, "province_name": "เพชรบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 73680 }, { "row_id": 114, "province_code": 101900025, "province_name": "เพชรบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 115, "province_code": 101900025, "province_name": "เพชรบุรี", "region_code": 1, "region_name": "ภาค1", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 116, "province_code": 101900014, "province_name": "กอ.รมน.ภาค 2", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 41000, "disbursed_amount": 19800 }, { "row_id": 117, "province_code": 101900014, "province_name": "กอ.รมน.ภาค 2", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 295140, "disbursed_amount": 98420 }, { "row_id": 118, "province_code": 101900014, "province_name": "กอ.รมน.ภาค 2", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 242400, "disbursed_amount": 19800 }, { "row_id": 119, "province_code": 101900015, "province_name": "กอ.รมน.ภาค2 สย.1", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 120, "province_code": 101900016, "province_name": "กอ.รมน.ภาค2 สย.2", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 121, "province_code": 101900084, "province_name": "กาฬสินธุ์", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 130540, "disbursed_amount": 92380 }, { "row_id": 122, "province_code": 101900084, "province_name": "กาฬสินธุ์", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 73680 }, { "row_id": 123, "province_code": 101900084, "province_name": "กาฬสินธุ์", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 124, "province_code": 101900084, "province_name": "กาฬสินธุ์", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 125, "province_code": 101900085, "province_name": "ขอนแก่น", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 126, "province_code": 101900085, "province_name": "ขอนแก่น", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 127, "province_code": 101900085, "province_name": "ขอนแก่น", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 128, "province_code": 101900085, "province_name": "ขอนแก่น", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 129, "province_code": 101900086, "province_name": "ชัยภูมิ", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 130, "province_code": 101900086, "province_name": "ชัยภูมิ", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 270820 }, { "row_id": 131, "province_code": 101900086, "province_name": "ชัยภูมิ", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 132, "province_code": 101900086, "province_name": "ชัยภูมิ", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 133, "province_code": 101900032, "province_name": "นครพนม", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 134, "province_code": 101900032, "province_name": "นครพนม", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 172420 }, { "row_id": 135, "province_code": 101900032, "province_name": "นครพนม", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 136, "province_code": 101900032, "province_name": "นครพนม", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 137, "province_code": 101900087, "province_name": "นครราชสีมา", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 138, "province_code": 101900087, "province_name": "นครราชสีมา", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 73680 }, { "row_id": 139, "province_code": 101900087, "province_name": "นครราชสีมา", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 130540, "disbursed_amount": 98740 }, { "row_id": 140, "province_code": 101900087, "province_name": "นครราชสีมา", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 141, "province_code": 101900108, "province_name": "บึงกาฬ", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 142, "province_code": 101900108, "province_name": "บึงกาฬ", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 98280 }, { "row_id": 143, "province_code": 101900108, "province_name": "บึงกาฬ", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 119940, "disbursed_amount": 98500 }, { "row_id": 144, "province_code": 101900108, "province_name": "บึงกาฬ", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 145, "province_code": 101900027, "province_name": "บุรีรัมย์", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 10600 }, { "row_id": 146, "province_code": 101900027, "province_name": "บุรีรัมย์", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 197020 }, { "row_id": 147, "province_code": 101900027, "province_name": "บุรีรัมย์", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 148, "province_code": 101900027, "province_name": "บุรีรัมย์", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 149, "province_code": 101900088, "province_name": "มหาสารคาม", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 21600 }, { "row_id": 150, "province_code": 101900088, "province_name": "มหาสารคาม", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 92080 }, { "row_id": 151, "province_code": 101900088, "province_name": "มหาสารคาม", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 152, "province_code": 101900088, "province_name": "มหาสารคาม", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 153, "province_code": 101900031, "province_name": "มุกดาหาร", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 154, "province_code": 101900031, "province_name": "มุกดาหาร", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 145360 }, { "row_id": 155, "province_code": 101900031, "province_name": "มุกดาหาร", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 156, "province_code": 101900031, "province_name": "มุกดาหาร", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 157, "province_code": 101900089, "province_name": "ยโสธร", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 10600 }, { "row_id": 158, "province_code": 101900089, "province_name": "ยโสธร", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 159, "province_code": 101900089, "province_name": "ยโสธร", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 160, "province_code": 101900089, "province_name": "ยโสธร", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 161, "province_code": 101900090, "province_name": "ร้อยเอ็ด", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 162, "province_code": 101900090, "province_name": "ร้อยเอ็ด", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 186820 }, { "row_id": 163, "province_code": 101900090, "province_name": "ร้อยเอ็ด", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 164, "province_code": 101900090, "province_name": "ร้อยเอ็ด", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 165, "province_code": 101900029, "province_name": "ศรีสะเกษ", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 166, "province_code": 101900029, "province_name": "ศรีสะเกษ", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 167, "province_code": 101900029, "province_name": "ศรีสะเกษ", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 105940 }, { "row_id": 168, "province_code": 101900029, "province_name": "ศรีสะเกษ", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 51150 }, { "row_id": 169, "province_code": 101900091, "province_name": "สกลนคร", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 14400 }, { "row_id": 170, "province_code": 101900091, "province_name": "สกลนคร", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 88080 }, { "row_id": 171, "province_code": 101900091, "province_name": "สกลนคร", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 172, "province_code": 101900091, "province_name": "สกลนคร", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 173, "province_code": 101900028, "province_name": "สุรินทร์", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 174, "province_code": 101900028, "province_name": "สุรินทร์", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 73680 }, { "row_id": 175, "province_code": 101900028, "province_name": "สุรินทร์", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 93140 }, { "row_id": 176, "province_code": 101900028, "province_name": "สุรินทร์", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 177, "province_code": 101900033, "province_name": "หนองคาย", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 178, "province_code": 101900033, "province_name": "หนองคาย", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 179, "province_code": 101900033, "province_name": "หนองคาย", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 180, "province_code": 101900033, "province_name": "หนองคาย", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 181, "province_code": 101900092, "province_name": "หนองบัวลำภู", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 182, "province_code": 101900092, "province_name": "หนองบัวลำภู", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 172420 }, { "row_id": 183, "province_code": 101900092, "province_name": "หนองบัวลำภู", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 53000, "disbursed_amount": 0 }, { "row_id": 184, "province_code": 101900092, "province_name": "หนองบัวลำภู", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 185, "province_code": 101900035, "province_name": "อำนาจเจริญ", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 130540, "disbursed_amount": 102980 }, { "row_id": 186, "province_code": 101900035, "province_name": "อำนาจเจริญ", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 110580 }, { "row_id": 187, "province_code": 101900035, "province_name": "อำนาจเจริญ", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 188, "province_code": 101900035, "province_name": "อำนาจเจริญ", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 189, "province_code": 101900093, "province_name": "อุดรธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 190, "province_code": 101900093, "province_name": "อุดรธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 235300 }, { "row_id": 191, "province_code": 101900093, "province_name": "อุดรธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 192, "province_code": 101900093, "province_name": "อุดรธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 193, "province_code": 101900030, "province_name": "อุบลราชธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 194, "province_code": 101900030, "province_name": "อุบลราชธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 172420 }, { "row_id": 195, "province_code": 101900030, "province_name": "อุบลราชธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 196, "province_code": 101900030, "province_name": "อุบลราชธานี", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 197, "province_code": 101900034, "province_name": "เลย", "region_code": 2, "region_name": "ภาค2", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 21200 }, { "row_id": 198, "province_code": 101900034, "province_name": "เลย", "region_code": 2, "region_name": "ภาค2", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 293300, "disbursed_amount": 250420 }, { "row_id": 199, "province_code": 101900034, "province_name": "เลย", "region_code": 2, "region_name": "ภาค2", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 200, "province_code": 101900034, "province_name": "เลย", "region_code": 2, "region_name": "ภาค2", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 201, "province_code": 101900017, "province_name": "กอ.รมน.ภาค 3", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 41000, "disbursed_amount": 19800 }, { "row_id": 202, "province_code": 101900017, "province_name": "กอ.รมน.ภาค 3", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 196740, "disbursed_amount": 98420 }, { "row_id": 203, "province_code": 101900017, "province_name": "กอ.รมน.ภาค 3", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 210600, "disbursed_amount": 19800 }, { "row_id": 204, "province_code": 101900017, "province_name": "กอ.รมน.ภาค 3", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 377400, "disbursed_amount": 157140 }, { "row_id": 205, "province_code": 101900052, "province_name": "กอ.รมน.ภาค3 สย.1", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 206, "province_code": 101900053, "province_name": "กอ.รมน.ภาค3 สย.2", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 207, "province_code": 101900053, "province_name": "กอ.รมน.ภาค3 สย.2", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 208, "province_code": 101900077, "province_name": "กำแพงเพชร", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 130540, "disbursed_amount": 113580 }, { "row_id": 209, "province_code": 101900077, "province_name": "กำแพงเพชร", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 98280 }, { "row_id": 210, "province_code": 101900077, "province_name": "กำแพงเพชร", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 211, "province_code": 101900077, "province_name": "กำแพงเพชร", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 212, "province_code": 101900077, "province_name": "กำแพงเพชร", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 213, "province_code": 101900039, "province_name": "ตาก", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 130540, "disbursed_amount": 92380 }, { "row_id": 214, "province_code": 101900039, "province_name": "ตาก", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 122880 }, { "row_id": 215, "province_code": 101900039, "province_name": "ตาก", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 42400, "disbursed_amount": 0 }, { "row_id": 216, "province_code": 101900039, "province_name": "ตาก", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 217, "province_code": 101900039, "province_name": "ตาก", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 218, "province_code": 101900071, "province_name": "นครสวรรค์", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 21600 }, { "row_id": 219, "province_code": 101900071, "province_name": "นครสวรรค์", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 96160 }, { "row_id": 220, "province_code": 101900071, "province_name": "นครสวรรค์", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 119940, "disbursed_amount": 89640 }, { "row_id": 221, "province_code": 101900071, "province_name": "นครสวรรค์", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 41650 }, { "row_id": 222, "province_code": 101900071, "province_name": "นครสวรรค์", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 109800 }, { "row_id": 223, "province_code": 101900040, "province_name": "น่าน", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 10600 }, { "row_id": 224, "province_code": 101900040, "province_name": "น่าน", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 293300, "disbursed_amount": 208260 }, { "row_id": 225, "province_code": 101900040, "province_name": "น่าน", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 226, "province_code": 101900040, "province_name": "น่าน", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 227, "province_code": 101900040, "province_name": "น่าน", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 228, "province_code": 101900041, "province_name": "พะเยา", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 10600 }, { "row_id": 229, "province_code": 101900041, "province_name": "พะเยา", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 197020 }, { "row_id": 230, "province_code": 101900041, "province_name": "พะเยา", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 42400, "disbursed_amount": 0 }, { "row_id": 231, "province_code": 101900041, "province_name": "พะเยา", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 232, "province_code": 101900041, "province_name": "พะเยา", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 233, "province_code": 101900079, "province_name": "พิจิตร", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 234, "province_code": 101900079, "province_name": "พิจิตร", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 268700, "disbursed_amount": 234020 }, { "row_id": 235, "province_code": 101900079, "province_name": "พิจิตร", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 42400, "disbursed_amount": 0 }, { "row_id": 236, "province_code": 101900079, "province_name": "พิจิตร", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 237, "province_code": 101900079, "province_name": "พิจิตร", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 238, "province_code": 101900042, "province_name": "พิษณุโลก", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 239, "province_code": 101900042, "province_name": "พิษณุโลก", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 240, "province_code": 101900042, "province_name": "พิษณุโลก", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 241, "province_code": 101900042, "province_name": "พิษณุโลก", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 242, "province_code": 101900042, "province_name": "พิษณุโลก", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 115750 }, { "row_id": 243, "province_code": 101900081, "province_name": "ลำปาง", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 244, "province_code": 101900081, "province_name": "ลำปาง", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 102480 }, { "row_id": 245, "province_code": 101900081, "province_name": "ลำปาง", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 151740, "disbursed_amount": 113140 }, { "row_id": 246, "province_code": 101900081, "province_name": "ลำปาง", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 247, "province_code": 101900081, "province_name": "ลำปาง", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 248, "province_code": 101900080, "province_name": "ลำพูน", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 10600 }, { "row_id": 249, "province_code": 101900080, "province_name": "ลำพูน", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 293300, "disbursed_amount": 186820 }, { "row_id": 250, "province_code": 101900080, "province_name": "ลำพูน", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 251, "province_code": 101900080, "province_name": "ลำพูน", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 252, "province_code": 101900080, "province_name": "ลำพูน", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 253, "province_code": 101900078, "province_name": "สุโขทัย", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 254, "province_code": 101900078, "province_name": "สุโขทัย", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 98280 }, { "row_id": 255, "province_code": 101900078, "province_name": "สุโขทัย", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 256, "province_code": 101900078, "province_name": "สุโขทัย", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 257, "province_code": 101900078, "province_name": "สุโขทัย", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 258, "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 21200 }, { "row_id": 259, "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 293300, "disbursed_amount": 221620 }, { "row_id": 260, "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 261, "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 262, "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 263, "province_code": 101900070, "province_name": "อุทัยธานี", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 264, "province_code": 101900070, "province_name": "อุทัยธานี", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 265, "province_code": 101900070, "province_name": "อุทัยธานี", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 266, "province_code": 101900070, "province_name": "อุทัยธานี", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 267, "province_code": 101900070, "province_name": "อุทัยธานี", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 268, "province_code": 101900036, "province_name": "เชียงราย", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 21200 }, { "row_id": 269, "province_code": 101900036, "province_name": "เชียงราย", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 197020 }, { "row_id": 270, "province_code": 101900036, "province_name": "เชียงราย", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 271, "province_code": 101900036, "province_name": "เชียงราย", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 272, "province_code": 101900036, "province_name": "เชียงราย", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 273, "province_code": 101900037, "province_name": "เชียงใหม่", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 130540, "disbursed_amount": 93140 }, { "row_id": 274, "province_code": 101900037, "province_name": "เชียงใหม่", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 169960 }, { "row_id": 275, "province_code": 101900037, "province_name": "เชียงใหม่", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 276, "province_code": 101900037, "province_name": "เชียงใหม่", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 277, "province_code": 101900037, "province_name": "เชียงใหม่", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 278, "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 279, "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 172420 }, { "row_id": 280, "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 281, "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 282, "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 283, "province_code": 101900082, "province_name": "แพร่", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 21200 }, { "row_id": 284, "province_code": 101900082, "province_name": "แพร่", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 293300, "disbursed_amount": 293300 }, { "row_id": 285, "province_code": 101900082, "province_name": "แพร่", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 286, "province_code": 101900082, "province_name": "แพร่", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 287, "province_code": 101900082, "province_name": "แพร่", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 288, "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_code": 3, "region_name": "ภาค3", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 289, "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_code": 3, "region_name": "ภาค3", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 166820 }, { "row_id": 290, "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_code": 3, "region_name": "ภาค3", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 291, "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_code": 3, "region_name": "ภาค3", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 292, "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_code": 3, "region_name": "ภาค3", "work_id": 5, "work_name": "งานการแก้ไขปัญหาไฟป่าหมอกควันและฝุ่นละอองPM2.5ด้วยกลไกความมั่นคง", "allocated_amount": 116800, "disbursed_amount": 116800 }, { "row_id": 293, "province_code": 101900096, "province_name": "กระบี่", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 294, "province_code": 101900096, "province_name": "กระบี่", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 120880 }, { "row_id": 295, "province_code": 101900096, "province_name": "กระบี่", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 91100 }, { "row_id": 296, "province_code": 101900096, "province_name": "กระบี่", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 40550 }, { "row_id": 297, "province_code": 101900018, "province_name": "กอ.รมน.ภาค 4", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 41000, "disbursed_amount": 19799 }, { "row_id": 298, "province_code": 101900018, "province_name": "กอ.รมน.ภาค 4", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 184400, "disbursed_amount": 98420 }, { "row_id": 299, "province_code": 101900018, "province_name": "กอ.รมน.ภาค 4", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 178800, "disbursed_amount": 19800 }, { "row_id": 300, "province_code": 101900019, "province_name": "กอ.รมน.ภาค 4 สย.1", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 301, "province_code": 101900103, "province_name": "กอ.รมน.ภาค 4 สย.ทร.", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 98400, "disbursed_amount": 49200 }, { "row_id": 302, "province_code": 101900044, "province_name": "ชุมพร", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 130540, "disbursed_amount": 109340 }, { "row_id": 303, "province_code": 101900044, "province_name": "ชุมพร", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 122880 }, { "row_id": 304, "province_code": 101900044, "province_name": "ชุมพร", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 42400, "disbursed_amount": 0 }, { "row_id": 305, "province_code": 101900044, "province_name": "ชุมพร", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 306, "province_code": 101900099, "province_name": "ตรัง", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 100560 }, { "row_id": 307, "province_code": 101900099, "province_name": "ตรัง", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 98280 }, { "row_id": 308, "province_code": 101900099, "province_name": "ตรัง", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 10600 }, { "row_id": 309, "province_code": 101900099, "province_name": "ตรัง", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 54550 }, { "row_id": 310, "province_code": 101900095, "province_name": "นครศรีธรรมราช", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 10600 }, { "row_id": 311, "province_code": 101900095, "province_name": "นครศรีธรรมราช", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 109520 }, { "row_id": 312, "province_code": 101900095, "province_name": "นครศรีธรรมราช", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 63740 }, { "row_id": 313, "province_code": 101900095, "province_name": "นครศรีธรรมราช", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 33350 }, { "row_id": 314, "province_code": 101900048, "province_name": "นราธิวาส", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 315, "province_code": 101900048, "province_name": "นราธิวาส", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 316, "province_code": 101900048, "province_name": "นราธิวาส", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 92380 }, { "row_id": 317, "province_code": 101900048, "province_name": "นราธิวาส", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 318, "province_code": 101900050, "province_name": "ปัตตานี", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 319, "province_code": 101900050, "province_name": "ปัตตานี", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 320, "province_code": 101900050, "province_name": "ปัตตานี", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 321, "province_code": 101900050, "province_name": "ปัตตานี", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 322, "province_code": 101900097, "province_name": "พังงา", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 35000 }, { "row_id": 323, "province_code": 101900097, "province_name": "พังงา", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 122880 }, { "row_id": 324, "province_code": 101900097, "province_name": "พังงา", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 325, "province_code": 101900097, "province_name": "พังงา", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 326, "province_code": 101900100, "province_name": "พัทลุง", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 0 }, { "row_id": 327, "province_code": 101900100, "province_name": "พัทลุง", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 328, "province_code": 101900100, "province_name": "พัทลุง", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 329, "province_code": 101900100, "province_name": "พัทลุง", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 0 }, { "row_id": 330, "province_code": 101900098, "province_name": "ภูเก็ต", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 119940 }, { "row_id": 331, "province_code": 101900098, "province_name": "ภูเก็ต", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 169960, "disbursed_amount": 98280 }, { "row_id": 332, "province_code": 101900098, "province_name": "ภูเก็ต", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 333, "province_code": 101900098, "province_name": "ภูเก็ต", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 334, "province_code": 101900047, "province_name": "ยะลา", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 335, "province_code": 101900047, "province_name": "ยะลา", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 106580 }, { "row_id": 336, "province_code": 101900047, "province_name": "ยะลา", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 337, "province_code": 101900047, "province_name": "ยะลา", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 41650 }, { "row_id": 338, "province_code": 101900045, "province_name": "ระนอง", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 339, "province_code": 101900045, "province_name": "ระนอง", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 194560, "disbursed_amount": 49080 }, { "row_id": 340, "province_code": 101900045, "province_name": "ระนอง", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 341, "province_code": 101900045, "province_name": "ระนอง", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 342, "province_code": 101900046, "province_name": "สงขลา", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 0 }, { "row_id": 343, "province_code": 101900046, "province_name": "สงขลา", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 244100, "disbursed_amount": 172420 }, { "row_id": 344, "province_code": 101900046, "province_name": "สงขลา", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 31800, "disbursed_amount": 0 }, { "row_id": 345, "province_code": 101900046, "province_name": "สงขลา", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 346, "province_code": 101900049, "province_name": "สตูล", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 21200, "disbursed_amount": 10600 }, { "row_id": 347, "province_code": 101900049, "province_name": "สตูล", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 73680 }, { "row_id": 348, "province_code": 101900049, "province_name": "สตูล", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 109340, "disbursed_amount": 98740 }, { "row_id": 349, "province_code": 101900049, "province_name": "สตูล", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }, { "row_id": 350, "province_code": 101900094, "province_name": "สุราษฎร์ธานี", "region_code": 4, "region_name": "ภาค4", "work_id": 1, "work_name": "งานการป้องกันและบรรเทาสาธารณภัย", "allocated_amount": 119940, "disbursed_amount": 92380 }, { "row_id": 351, "province_code": 101900094, "province_name": "สุราษฎร์ธานี", "region_code": 4, "region_name": "ภาค4", "work_id": 2, "work_name": "งานการเสริมสร้างความั่นคงด้านทรัพยากรธรรมชาติ", "allocated_amount": 145360, "disbursed_amount": 122880 }, { "row_id": 352, "province_code": 101900094, "province_name": "สุราษฎร์ธานี", "region_code": 4, "region_name": "ภาค4", "work_id": 3, "work_name": "งานการเสริมสร้างความมั่นคงด้านสิ่งแวดล้อม", "allocated_amount": 10600, "disbursed_amount": 0 }, { "row_id": 353, "province_code": 101900094, "province_name": "สุราษฎร์ธานี", "region_code": 4, "region_name": "ภาค4", "work_id": 4, "work_name": "งานการเสริมสร้างความมั่นคงด้านพลังงานและอาหาร", "allocated_amount": 54550, "disbursed_amount": 43950 }];
+        const P0 = [{ "province_code": 101900104, "province_name": "ศปป.4 กอ.รมน.", "region_name": "ส่วนกลาง", "total_alloc": 5321430, "total_disb": 2383232, "w1_alloc": 133220, "w1_disb": 127728, "w2_alloc": 4713740, "w2_disb": 2139774, "w3_alloc": 164220, "w3_disb": 0, "w4_alloc": 167750, "w4_disb": 0, "w5_alloc": 142500, "w5_disb": 115730 }, { "province_code": 101900017, "province_name": "กอ.รมน.ภาค 3", "region_name": "ภาค3", "total_alloc": 825740, "total_disb": 295160, "w1_alloc": 41000, "w1_disb": 19800, "w2_alloc": 196740, "w2_disb": 98420, "w3_alloc": 210600, "w3_disb": 19800, "w5_alloc": 377400, "w5_disb": 157140 }, { "province_code": 101900014, "province_name": "กอ.รมน.ภาค 2", "region_name": "ภาค2", "total_alloc": 578540, "total_disb": 138020, "w1_alloc": 41000, "w1_disb": 19800, "w2_alloc": 295140, "w2_disb": 98420, "w3_alloc": 242400, "w3_disb": 19800 }, { "province_code": 101900039, "province_name": "ตาก", "region_name": "ภาค3", "total_alloc": 538850, "total_disb": 376010, "w1_alloc": 130540, "w1_disb": 92380, "w2_alloc": 194560, "w2_disb": 122880, "w3_alloc": 42400, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900040, "province_name": "น่าน", "region_name": "ภาค3", "total_alloc": 528250, "total_disb": 379610, "w1_alloc": 31800, "w1_disb": 10600, "w2_alloc": 293300, "w2_disb": 208260, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900109, "province_name": "กอ.รมน.ภาค 1", "region_name": "ภาค1", "total_alloc": 519140, "total_disb": 138020, "w1_alloc": 41000, "w1_disb": 19800, "w2_alloc": 172140, "w2_disb": 98420, "w3_alloc": 306000, "w3_disb": 19800 }, { "province_code": 101900080, "province_name": "ลำพูน", "region_name": "ภาค3", "total_alloc": 517650, "total_disb": 358170, "w1_alloc": 21200, "w1_disb": 10600, "w2_alloc": 293300, "w2_disb": 186820, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900078, "province_name": "สุโขทัย", "region_name": "ภาค3", "total_alloc": 517650, "total_disb": 351410, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 194560, "w2_disb": 98280, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900079, "province_name": "พิจิตร", "region_name": "ภาค3", "total_alloc": 514250, "total_disb": 394770, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 268700, "w2_disb": 234020, "w3_alloc": 42400, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900043, "province_name": "อุตรดิตถ์", "region_name": "ภาค3", "total_alloc": 507050, "total_disb": 403570, "w1_alloc": 31800, "w1_disb": 21200, "w2_alloc": 293300, "w2_disb": 221620, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900037, "province_name": "เชียงใหม่", "region_name": "ภาค3", "total_alloc": 507050, "total_disb": 423850, "w1_alloc": 130540, "w1_disb": 93140, "w2_alloc": 194560, "w2_disb": 169960, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900077, "province_name": "กำแพงเพชร", "region_name": "ภาค3", "total_alloc": 503650, "total_disb": 372610, "w1_alloc": 130540, "w1_disb": 113580, "w2_alloc": 169960, "w2_disb": 98280, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900041, "province_name": "พะเยา", "region_name": "ภาค3", "total_alloc": 503650, "total_disb": 368370, "w1_alloc": 21200, "w1_disb": 10600, "w2_alloc": 268700, "w2_disb": 197020, "w3_alloc": 42400, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900082, "province_name": "แพร่", "region_name": "ภาค3", "total_alloc": 496450, "total_disb": 475250, "w1_alloc": 21200, "w1_disb": 21200, "w2_alloc": 293300, "w2_disb": 293300, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900071, "province_name": "นครสวรรค์", "region_name": "ภาค3", "total_alloc": 493050, "total_disb": 358850, "w1_alloc": 31800, "w1_disb": 21600, "w2_alloc": 169960, "w2_disb": 96160, "w3_alloc": 119940, "w3_disb": 89640, "w4_alloc": 54550, "w4_disb": 41650, "w5_alloc": 116800, "w5_disb": 109800 }, { "province_code": 101900081, "province_name": "ลำปาง", "region_name": "ภาค3", "total_alloc": 489650, "total_disb": 376370, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 145360, "w2_disb": 102480, "w3_alloc": 151740, "w3_disb": 113140, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900070, "province_name": "อุทัยธานี", "region_name": "ภาค3", "total_alloc": 468450, "total_disb": 326810, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900042, "province_name": "พิษณุโลก", "region_name": "ภาค3", "total_alloc": 447250, "total_disb": 332120, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 115750 }, { "province_code": 101900036, "province_name": "เชียงราย", "region_name": "ภาค3", "total_alloc": 447250, "total_disb": 378970, "w1_alloc": 21200, "w1_disb": 21200, "w2_alloc": 244100, "w2_disb": 197020, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900083, "province_name": "เพชรบูรณ์", "region_name": "ภาค3", "total_alloc": 447250, "total_disb": 333170, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 244100, "w2_disb": 172420, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900038, "province_name": "แม่ฮ่องสอน", "region_name": "ภาค3", "total_alloc": 447250, "total_disb": 327570, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 244100, "w2_disb": 166820, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950, "w5_alloc": 116800, "w5_disb": 116800 }, { "province_code": 101900069, "province_name": "ชัยนาท", "region_name": "ภาค1", "total_alloc": 429190, "total_disb": 216370, "w1_alloc": 119940, "w1_disb": 98740, "w2_alloc": 244100, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900044, "province_name": "ชุมพร", "region_name": "ภาค4", "total_alloc": 422050, "total_disb": 276170, "w1_alloc": 130540, "w1_disb": 109340, "w2_alloc": 194560, "w2_disb": 122880, "w3_alloc": 42400, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900087, "province_name": "นครราชสีมา", "region_name": "ภาค2", "total_alloc": 411450, "total_disb": 216370, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 194560, "w2_disb": 73680, "w3_alloc": 130540, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900092, "province_name": "หนองบัวลำภู", "region_name": "ภาค2", "total_alloc": 408050, "total_disb": 216370, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 268700, "w2_disb": 172420, "w3_alloc": 53000, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900018, "province_name": "กอ.รมน.ภาค 4", "region_name": "ภาค4", "total_alloc": 404200, "total_disb": 138019, "w1_alloc": 41000, "w1_disb": 19799, "w2_alloc": 184400, "w2_disb": 98420, "w3_alloc": 178800, "w3_disb": 19800 }, { "province_code": 101900074, "province_name": "ชลบุรี", "region_name": "ภาค1", "total_alloc": 400850, "total_disb": 210010, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 194560, "w2_disb": 73680, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900065, "province_name": "สุพรรณบุรี", "region_name": "ภาค1", "total_alloc": 400850, "total_disb": 286770, "w1_alloc": 21200, "w1_disb": 21200, "w2_alloc": 194560, "w2_disb": 122880, "w3_alloc": 130540, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900108, "province_name": "บึงกาฬ", "region_name": "ภาค2", "total_alloc": 400850, "total_disb": 240730, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 194560, "w2_disb": 98280, "w3_alloc": 119940, "w3_disb": 98500, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900091, "province_name": "สกลนคร", "region_name": "ภาค2", "total_alloc": 390250, "total_disb": 245170, "w1_alloc": 31800, "w1_disb": 14400, "w2_alloc": 194560, "w2_disb": 88080, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900045, "province_name": "ระนอง", "region_name": "ภาค4", "total_alloc": 390250, "total_disb": 191770, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 194560, "w2_disb": 49080, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900073, "province_name": "ระยอง", "region_name": "ภาค1", "total_alloc": 386850, "total_disb": 216370, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 268700, "w2_disb": 172420, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900035, "province_name": "อำนาจเจริญ", "region_name": "ภาค2", "total_alloc": 386850, "total_disb": 257510, "w1_alloc": 130540, "w1_disb": 102980, "w2_alloc": 169960, "w2_disb": 110580, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900093, "province_name": "อุดรธานี", "region_name": "ภาค2", "total_alloc": 386850, "total_disb": 279250, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 268700, "w2_disb": 235300, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900024, "province_name": "ราชบุรี", "region_name": "ภาค1", "total_alloc": 379650, "total_disb": 273630, "w1_alloc": 119940, "w1_disb": 95560, "w2_alloc": 194560, "w2_disb": 134120, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900034, "province_name": "เลย", "region_name": "ภาค2", "total_alloc": 379650, "total_disb": 315570, "w1_alloc": 21200, "w1_disb": 21200, "w2_alloc": 293300, "w2_disb": 250420, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900076, "province_name": "ปราจีนบุรี", "region_name": "ภาค1", "total_alloc": 376250, "total_disb": 270770, "w1_alloc": 21200, "w1_disb": 14400, "w2_alloc": 268700, "w2_disb": 190820, "w3_alloc": 31800, "w3_disb": 21600, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900098, "province_name": "ภูเก็ต", "region_name": "ภาค4", "total_alloc": 376250, "total_disb": 262170, "w1_alloc": 119940, "w1_disb": 119940, "w2_alloc": 169960, "w2_disb": 98280, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900023, "province_name": "กาญจนบุรี", "region_name": "ภาค1", "total_alloc": 365650, "total_disb": 263610, "w1_alloc": 31800, "w1_disb": 7200, "w2_alloc": 268700, "w2_disb": 212460, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900084, "province_name": "กาฬสินธุ์", "region_name": "ภาค2", "total_alloc": 365650, "total_disb": 210010, "w1_alloc": 130540, "w1_disb": 92380, "w2_alloc": 169960, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900032, "province_name": "นครพนม", "region_name": "ภาค2", "total_alloc": 365650, "total_disb": 216370, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 268700, "w2_disb": 172420, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900088, "province_name": "มหาสารคาม", "region_name": "ภาค2", "total_alloc": 365650, "total_disb": 256370, "w1_alloc": 31800, "w1_disb": 21600, "w2_alloc": 169960, "w2_disb": 92080, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900028, "province_name": "สุรินทร์", "region_name": "ภาค2", "total_alloc": 365650, "total_disb": 210770, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 169960, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 93140, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900025, "province_name": "เพชรบุรี", "region_name": "ภาค1", "total_alloc": 355050, "total_disb": 216370, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 169960, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900090, "province_name": "ร้อยเอ็ด", "region_name": "ภาค2", "total_alloc": 355050, "total_disb": 230770, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 268700, "w2_disb": 186820, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900096, "province_name": "กระบี่", "region_name": "ภาค4", "total_alloc": 355050, "total_disb": 252530, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 169960, "w2_disb": 120880, "w3_alloc": 109340, "w3_disb": 91100, "w4_alloc": 54550, "w4_disb": 40550 }, { "province_code": 101900099, "province_name": "ตรัง", "region_name": "ภาค4", "total_alloc": 355050, "total_disb": 263990, "w1_alloc": 119940, "w1_disb": 100560, "w2_alloc": 169960, "w2_disb": 98280, "w3_alloc": 10600, "w3_disb": 10600, "w4_alloc": 54550, "w4_disb": 54550 }, { "province_code": 101900046, "province_name": "สงขลา", "region_name": "ภาค4", "total_alloc": 351650, "total_disb": 216370, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 244100, "w2_disb": 172420, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900027, "province_name": "บุรีรัมย์", "region_name": "ภาค2", "total_alloc": 341050, "total_disb": 251570, "w1_alloc": 31800, "w1_disb": 10600, "w2_alloc": 244100, "w2_disb": 197020, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900021, "province_name": "จันทบุรี", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 216370, "w1_alloc": 119940, "w1_disb": 98740, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900063, "province_name": "ฉะเชิงเทรา", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 199410, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 33350 }, { "province_code": 101900022, "province_name": "ตราด", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 245850, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 109520, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900075, "province_name": "นครนายก", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 257210, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 120880, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900026, "province_name": "ประจวบคีรีขันธ์", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 272160, "w1_alloc": 21200, "w1_disb": 21200, "w2_alloc": 145360, "w2_disb": 120880, "w3_alloc": 109340, "w3_disb": 96730, "w4_alloc": 54550, "w4_disb": 33350 }, { "province_code": 101900068, "province_name": "ลพบุรี", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 229770, "w1_alloc": 21200, "w1_disb": 14400, "w2_alloc": 244100, "w2_disb": 172420, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 42950 }, { "province_code": 101900072, "province_name": "สระบุรี", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 210010, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900020, "province_name": "สระแก้ว", "region_name": "ภาค1", "total_alloc": 330450, "total_disb": 183830, "w1_alloc": 119940, "w1_disb": 90680, "w2_alloc": 145360, "w2_disb": 49200, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900085, "province_name": "ขอนแก่น", "region_name": "ภาค2", "total_alloc": 330450, "total_disb": 210010, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900031, "province_name": "มุกดาหาร", "region_name": "ภาค2", "total_alloc": 330450, "total_disb": 281690, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 145360, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900089, "province_name": "ยโสธร", "region_name": "ภาค2", "total_alloc": 330450, "total_disb": 226970, "w1_alloc": 21200, "w1_disb": 10600, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900029, "province_name": "ศรีสะเกษ", "region_name": "ภาค2", "total_alloc": 330450, "total_disb": 230770, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 105940, "w4_alloc": 54550, "w4_disb": 51150 }, { "province_code": 101900033, "province_name": "หนองคาย", "region_name": "ภาค2", "total_alloc": 330450, "total_disb": 210010, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900030, "province_name": "อุบลราชธานี", "region_name": "ภาค2", "total_alloc": 330450, "total_disb": 216370, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 244100, "w2_disb": 172420, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900095, "province_name": "นครศรีธรรมราช", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 217210, "w1_alloc": 21200, "w1_disb": 10600, "w2_alloc": 145360, "w2_disb": 109520, "w3_alloc": 109340, "w3_disb": 63740, "w4_alloc": 54550, "w4_disb": 33350 }, { "province_code": 101900048, "province_name": "นราธิวาส", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 210010, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 92380, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900050, "province_name": "ปัตตานี", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 210010, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900097, "province_name": "พังงา", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 201830, "w1_alloc": 119940, "w1_disb": 35000, "w2_alloc": 145360, "w2_disb": 122880, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900100, "province_name": "พัทลุง", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 73680, "w1_alloc": 119940, "w1_disb": 0, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 0 }, { "province_code": 101900047, "province_name": "ยะลา", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 148230, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 244100, "w2_disb": 106580, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 41650 }, { "province_code": 101900049, "province_name": "สตูล", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 226970, "w1_alloc": 21200, "w1_disb": 10600, "w2_alloc": 145360, "w2_disb": 73680, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900094, "province_name": "สุราษฎร์ธานี", "region_name": "ภาค4", "total_alloc": 330450, "total_disb": 259210, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 145360, "w2_disb": 122880, "w3_alloc": 10600, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900086, "province_name": "ชัยภูมิ", "region_name": "ภาค2", "total_alloc": 312710, "total_disb": 314770, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 194560, "w2_disb": 270820, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900058, "province_name": "ปทุมธานี", "region_name": "ภาค1", "total_alloc": 306250, "total_disb": 210850, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 46960, "w3_alloc": 172940, "w3_disb": 119940, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900060, "province_name": "สมุทรสงคราม", "region_name": "ภาค1", "total_alloc": 263850, "total_disb": 164530, "w1_alloc": 31800, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 130540, "w3_disb": 96700, "w4_alloc": 54550, "w4_disb": 43350 }, { "province_code": 101900111, "province_name": "กอ.รมน.กทม", "region_name": "ภาค1", "total_alloc": 253250, "total_disb": 160810, "w1_alloc": 119940, "w1_disb": 92380, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 31800, "w3_disb": 0, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900061, "province_name": "นครปฐม", "region_name": "ภาค1", "total_alloc": 253250, "total_disb": 150210, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 130540, "w3_disb": 92380, "w4_alloc": 54550, "w4_disb": 33350 }, { "province_code": 101900064, "province_name": "พระนครศรีอยุธยา", "region_name": "ภาค1", "total_alloc": 253250, "total_disb": 167170, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 130540, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900059, "province_name": "สมุทรปราการ", "region_name": "ภาค1", "total_alloc": 253250, "total_disb": 167170, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 130540, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900057, "province_name": "นนทบุรี", "region_name": "ภาค1", "total_alloc": 242650, "total_disb": 165170, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 119940, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 41950 }, { "province_code": 101900062, "province_name": "สมุทรสาคร", "region_name": "ภาค1", "total_alloc": 232050, "total_disb": 165170, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 22480, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900067, "province_name": "สิงห์บุรี", "region_name": "ภาค1", "total_alloc": 232050, "total_disb": 177170, "w1_alloc": 21200, "w1_disb": 10600, "w2_alloc": 46960, "w2_disb": 13280, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 54550 }, { "province_code": 101900066, "province_name": "อ่างทอง", "region_name": "ภาค1", "total_alloc": 232050, "total_disb": 167170, "w1_alloc": 21200, "w1_disb": 0, "w2_alloc": 46960, "w2_disb": 24480, "w3_alloc": 109340, "w3_disb": 98740, "w4_alloc": 54550, "w4_disb": 43950 }, { "province_code": 101900051, "province_name": "กอ.รมน.ภาค1 สย.2", "region_name": "ภาค1", "total_alloc": 123000, "total_disb": 94200, "w2_alloc": 123000, "w2_disb": 94200 }, { "province_code": 101900110, "province_name": "กอ.รมน.ภาค1 สย.3", "region_name": "ภาค1", "total_alloc": 123000, "total_disb": 94200, "w2_alloc": 123000, "w2_disb": 94200 }, { "province_code": 101900053, "province_name": "กอ.รมน.ภาค3 สย.2", "region_name": "ภาค3", "total_alloc": 119600, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200, "w3_alloc": 21200, "w3_disb": 0 }, { "province_code": 101900054, "province_name": "กอ.รมน.ภาค1 สย.1", "region_name": "ภาค1", "total_alloc": 98400, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200 }, { "province_code": 101900015, "province_name": "กอ.รมน.ภาค2 สย.1", "region_name": "ภาค2", "total_alloc": 98400, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200 }, { "province_code": 101900016, "province_name": "กอ.รมน.ภาค2 สย.2", "region_name": "ภาค2", "total_alloc": 98400, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200 }, { "province_code": 101900052, "province_name": "กอ.รมน.ภาค3 สย.1", "region_name": "ภาค3", "total_alloc": 98400, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200 }, { "province_code": 101900019, "province_name": "กอ.รมน.ภาค 4 สย.1", "region_name": "ภาค4", "total_alloc": 98400, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200 }, { "province_code": 101900103, "province_name": "กอ.รมน.ภาค 4 สย.ทร.", "region_name": "ภาค4", "total_alloc": 98400, "total_disb": 49200, "w2_alloc": 98400, "w2_disb": 49200 }];
+
+        const WC = ["#58A6FF", "#3FB950", "#F0883E", "#BC8CFF", "#FF7B72"];
+        const WCB = ["rgba(88,166,255,.15)", "rgba(63,185,80,.15)", "rgba(240,136,62,.15)", "rgba(188,140,255,.15)", "rgba(255,123,114,.15)"];
+        const RC_MAP = { "ส่วนกลาง": "#D29922", "ภาค1": "#58A6FF", "ภาค2": "#3FB950", "ภาค3": "#F0883E", "ภาค4": "#BC8CFF" };
+        const SW = { 1: "ป้องกันสาธารณภัย", 2: "ทรัพยากรธรรมชาติ", 3: "สิ่งแวดล้อม", 4: "พลังงานและอาหาร", 5: "ไฟป่า/PM2.5" };
+        const WORKS = [1, 2, 3, 4, 5];
+
+        let S = JSON.parse(JSON.stringify(S0));
+        let recs = R0.map(d => ({ ...d }));
+        let pivotData = P0.map(d => ({ ...d }));
+        let pp = [], hist = [], charts = {};
+        let dtf = [], dtp_ = 1, dtView = "pivot";
+        const DTP = 30;
+        const fmt = n => Number(n || 0).toLocaleString("th-TH");
+        const fmtM = n => n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : (n / 1e3).toFixed(0) + "K";
+        const pct = (a, b) => b > 0 ? ((a / b) * 100).toFixed(1) : "0.0";
+        const tr = (s, n) => s && s.length > n ? s.substring(0, n) + "..." : s;
+        const rc = r => RC_MAP[r] || "#888";
+        const wc = i => WC[i] || "#888";
+
+        function recomp() {
+            const m = { ta: 0, td: 0, tr: recs.length, dr: 0, br: {}, bw: {}, brw: {} };
+            recs.forEach(d => {
+                m.ta += d.allocated_amount; m.td += (d.disbursed_amount || 0);
+                if (d.disbursed_amount > 0) m.dr++;
+                const a = d.allocated_amount, di = d.disbursed_amount || 0;
+                const rn = d.region_name, wn = d.work_name, wi = d.work_id;
+                if (!m.br[rn]) m.br[rn] = { region_name: rn, allocated: 0, disbursed: 0, count: 0 };
+                m.br[rn].allocated += a; m.br[rn].disbursed += di; m.br[rn].count++;
+                const wk = wi + "|" + wn;
+                if (!m.bw[wk]) m.bw[wk] = { work_id: wi, work_name: wn, allocated: 0, disbursed: 0, count: 0 };
+                m.bw[wk].allocated += a; m.bw[wk].disbursed += di; m.bw[wk].count++;
+                const rwk = rn + "|" + wi;
+                if (!m.brw[rwk]) m.brw[rwk] = { region_name: rn, work_id: wi, work_name: wn, allocated: 0, disbursed: 0 };
+                m.brw[rwk].allocated += a; m.brw[rwk].disbursed += di;
+            });
+            S.total_alloc = m.ta; S.total_disb = m.td; S.total_rows = m.tr; S.done_rows = m.dr;
+            S.by_region = Object.values(m.br).sort((a, b) => a.region_name.localeCompare(b.region_name, "th"));
+            S.by_work = Object.values(m.bw).sort((a, b) => a.work_id - b.work_id);
+            S.by_rw = Object.values(m.brw);
+            // recompute pivot
+            const pm = {};
+            recs.forEach(d => {
+                const k = d.province_code;
+                if (!pm[k]) pm[k] = { province_code: d.province_code, province_name: d.province_name, region_name: d.region_name, total_alloc: 0, total_disb: 0 };
+                pm[k].total_alloc += d.allocated_amount;
+                pm[k].total_disb += (d.disbursed_amount || 0);
+                pm[k]["w" + d.work_id + "_alloc"] = d.allocated_amount;
+                pm[k]["w" + d.work_id + "_disb"] = d.disbursed_amount || 0;
+            });
+            pivotData = Object.values(pm).sort((a, b) => b.total_alloc - a.total_alloc);
+        }
+
+        function renderAll() { renderKPI(); renderTbls(); renderCards(); if (Object.keys(charts).length) upCharts(); else mkCharts(); fdt(); }
+
+        function renderKPI() {
+            const ta = S.total_alloc, td = S.total_disb, p = pct(td, ta);
+            document.getElementById("k-alloc").textContent = fmt(ta);
+            document.getElementById("k-disb").textContent = fmt(td);
+            document.getElementById("k-dsub").textContent = "คิดเป็น " + p + "% ของงบรวม";
+            document.getElementById("kbar").style.width = p + "%";
+            document.getElementById("k-rem").textContent = fmt(ta - td);
+            document.getElementById("k-rsub").textContent = pct(ta - td, ta) + "% ของงบรวม";
+            document.getElementById("k-cnt").textContent = S.done_rows + " / " + S.total_rows;
+            document.getElementById("hPct").textContent = p + "% เบิกแล้ว";
+            document.getElementById("hUpd").textContent = "ข้อมูล: " + (S.last_update || "-");
+        }
+
+        function th(cols) { return "<thead><tr>" + cols.map(([l, c]) => "<th" + (c ? " class=\"" + c + "\"" : "") + ">" + l + "</th>").join("") + "</tr></thead>"; }
+        function barcell(d, a, cl) { const p = pct(d, a); return "<td><div class=\"ib\"><div class=\"ib-t\"><div class=\"ib-f" + (cl ? " " + cl : "") + "\" style=\"width:" + p + "%\"></div></div><span class=\"ibp\">" + p + "%</span></div></td>"; }
+
+        function renderTbls() {
+            document.getElementById("tReg").innerHTML = th([["ภาค"], ["รายการ", "r"], ["จัดสรร (บ.)", "r"], ["เบิกจ่าย (บ.)", "r"], ["คงเหลือ (บ.)", "r"], ["% เบิก"]]) +
+                "<tbody>" + S.by_region.map(d => { const c = rc(d.region_name); return "<tr><td><span style=\"color:" + c + ";background:" + c + "18;border:1px solid " + c + "33;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;display:inline-block\">" + d.region_name + "</span></td><td class=\"r\">" + fmt(d.count) + "</td><td class=\"r hi\">" + fmt(d.allocated) + "</td><td class=\"r\" style=\"color:var(--green)\">" + fmt(d.disbursed) + "</td><td class=\"r\" style=\"color:var(--amber)\">" + fmt(d.allocated - d.disbursed) + "</td>" + barcell(d.disbursed, d.allocated, "g") + "</tr>"; }).join("") + "</tbody>";
+            document.getElementById("tWork").innerHTML = th([["งาน"], ["รายการ", "r"], ["จัดสรร (บ.)", "r"], ["เบิกจ่าย (บ.)", "r"], ["คงเหลือ (บ.)", "r"], ["% เบิก"]]) +
+                "<tbody>" + S.by_work.map((d, i) => "<tr><td style=\"color:" + wc(i) + ";font-weight:500;max-width:200px\">" + tr(d.work_name, 30) + "</td><td class=\"r\">" + fmt(d.count) + "</td><td class=\"r hi\">" + fmt(d.allocated) + "</td><td class=\"r\" style=\"color:var(--green)\">" + fmt(d.disbursed) + "</td><td class=\"r\" style=\"color:var(--amber)\">" + fmt(d.allocated - d.disbursed) + "</td>" + barcell(d.disbursed, d.allocated, "g") + "</tr>").join("") + "</tbody>";
+        }
+
+        function renderCards() {
+            document.getElementById("workCards").innerHTML = S.by_work.map((d, i) => {
+                const c = wc(i), p = pct(d.disbursed, d.allocated);
+                const rws = S.by_rw.filter(r => r.work_id === d.work_id).sort((a, b) => a.region_name.localeCompare(b.region_name, "th"));
+                const stcls = parseFloat(p) >= 100 ? "bdg-done" : parseFloat(p) > 0 ? "bdg-part" : "bdg-none";
+                return "<div class=\"card\" style=\"border-top:2px solid " + c + "\"><div style=\"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px\"><div><div style=\"font-size:13px;font-weight:600;color:" + c + "\">" + SW[d.work_id] + "</div><div style=\"font-size:11px;color:var(--tx3)\">" + fmt(d.count) + " รายการ | จัดสรร " + fmt(d.allocated) + " บ.</div></div><span class=\"bdg " + stcls + "\">" + p + "%</span></div>"
+                    + "<div style=\"margin-bottom:12px\"><div style=\"display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:4px\"><span>เบิก " + fmt(d.disbursed) + " บ.</span><span>คงเหลือ " + fmt(d.allocated - d.disbursed) + " บ.</span></div><div class=\"kbar\"><div class=\"kfill\" style=\"width:" + p + "%;background:" + c + "\"></div></div></div>"
+                    + "<table class=\"tbl\" style=\"font-size:11px\"><thead><tr><th>ภาค</th><th class=\"r\">จัดสรร</th><th class=\"r\">เบิก</th><th>%</th></tr></thead><tbody>"
+                    + rws.map(r => "<tr><td><span style=\"color:" + rc(r.region_name) + ";font-family:var(--mono);font-size:10px\">" + r.region_name + "</span></td><td class=\"r\">" + fmt(r.allocated) + "</td><td class=\"r\" style=\"color:var(--green)\">" + fmt(r.disbursed) + "</td><td><div class=\"ib\"><div class=\"ib-t\"><div class=\"ib-f g\" style=\"width:" + pct(r.disbursed, r.allocated) + "%;background:" + c + "\"></div></div><span class=\"ibp\">" + pct(r.disbursed, r.allocated) + "%</span></div></td></tr>").join("")
+                    + "</tbody></table></div>";
+            }).join("");
+            document.getElementById("regCards").innerHTML = S.by_region.map(d => {
+                const c = rc(d.region_name), p = pct(d.disbursed, d.allocated);
+                const wrs = S.by_rw.filter(r => r.region_name === d.region_name).sort((a, b) => a.work_id - b.work_id);
+                const stcls = parseFloat(p) >= 100 ? "bdg-done" : parseFloat(p) > 0 ? "bdg-part" : "bdg-none";
+                return "<div class=\"card\" style=\"border-top:2px solid " + c + "\"><div style=\"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px\"><div><div style=\"font-size:13px;font-weight:600;color:" + c + "\">" + d.region_name + "</div><div style=\"font-size:11px;color:var(--tx3)\">" + fmt(d.count) + " รายการ | จัดสรร " + fmt(d.allocated) + " บ.</div></div><span class=\"bdg " + stcls + "\">" + p + "%</span></div>"
+                    + "<div style=\"margin-bottom:12px\"><div style=\"display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:4px\"><span>เบิก " + fmt(d.disbursed) + " บ.</span><span>คงเหลือ " + fmt(d.allocated - d.disbursed) + " บ.</span></div><div class=\"kbar\"><div class=\"kfill\" style=\"width:" + p + "%;background:" + c + "\"></div></div></div>"
+                    + "<table class=\"tbl\" style=\"font-size:11px\"><thead><tr><th>งาน</th><th class=\"r\">จัดสรร</th><th class=\"r\">เบิก</th><th>%</th></tr></thead><tbody>"
+                    + wrs.map(w => { const wci = S.by_work.findIndex(x => x.work_id === w.work_id); return "<tr><td style=\"color:" + wc(wci) + ";font-size:10px\">" + SW[w.work_id] + "</td><td class=\"r\">" + fmt(w.allocated) + "</td><td class=\"r\" style=\"color:var(--green)\">" + fmt(w.disbursed) + "</td><td><div class=\"ib\"><div class=\"ib-t\"><div class=\"ib-f g\" style=\"width:" + pct(w.disbursed, w.allocated) + "%;background:" + wc(wci) + "\"></div></div><span class=\"ibp\">" + pct(w.disbursed, w.allocated) + "%</span></div></td></tr>"; }).join("")
+                    + "</tbody></table></div>";
+            }).join("");
+        }
+
+        function mkCharts() {
+            const fo = { font: { family: '"IBM Plex Sans Thai",sans-serif', size: 11 } };
+            const gr = { color: "rgba(255,255,255,.06)" };
+            const C = (id, cfg) => { const el = document.getElementById(id); if (!el) return; charts[id] = new Chart(el.getContext("2d"), cfg); };
+            C("cReg", { type: "bar", data: { labels: S.by_region.map(d => d.region_name), datasets: [{ label: "จัดสรร", data: S.by_region.map(d => d.allocated), backgroundColor: "rgba(88,166,255,.2)", borderColor: "#58A6FF", borderWidth: 1, borderRadius: 4 }, { label: "เบิกจ่าย", data: S.by_region.map(d => d.disbursed), backgroundColor: "rgba(63,185,80,.55)", borderColor: "#3FB950", borderWidth: 1, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: fo.font, color: "#8B949E", boxWidth: 10 } } }, scales: { y: { ticks: { font: fo.font, color: "#6E7681", callback: v => fmtM(v) }, grid: gr }, x: { ticks: { font: fo.font, color: "#8B949E" }, grid: { display: false } } } } });
+            C("cPie", { type: "doughnut", data: { labels: S.by_work.map(d => SW[d.work_id]), datasets: [{ data: S.by_work.map(d => d.allocated), backgroundColor: WC.map(c => c + "BB"), borderColor: WC, borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: "58%", plugins: { legend: { position: "right", labels: { font: fo.font, color: "#8B949E", boxWidth: 10, padding: 8 } }, tooltip: { callbacks: { label: ctx => fmt(ctx.parsed) + " บ. (" + pct(ctx.parsed, S.total_alloc) + "%)" } } } } });
+            C("cWork", { type: "bar", data: { labels: S.by_work.map(d => SW[d.work_id]), datasets: [{ label: "จัดสรร", data: S.by_work.map(d => d.allocated), backgroundColor: WCB, borderColor: WC, borderWidth: 1, borderRadius: 4 }, { label: "เบิกจ่าย", data: S.by_work.map(d => d.disbursed), backgroundColor: WC.map(c => c + "99"), borderColor: WC, borderWidth: 1, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: fo.font, color: "#8B949E", boxWidth: 10 } } }, scales: { y: { ticks: { font: fo.font, color: "#6E7681", callback: v => fmtM(v) }, grid: gr }, x: { ticks: { font: fo.font, color: "#8B949E" }, grid: { display: false } } } } });
+            const regs = S.by_region.map(d => d.region_name);
+            C("cRW", { type: "bar", data: { labels: regs, datasets: WORKS.map((wi, i) => ({ label: SW[wi], data: regs.map(r => { const f = S.by_rw.find(d => d.region_name === r && d.work_id === wi); return f ? f.allocated : 0; }), backgroundColor: WC[i] + "88", borderColor: WC[i], borderWidth: 0.5, borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: fo.font, color: "#8B949E", boxWidth: 10 } } }, scales: { y: { stacked: true, ticks: { font: fo.font, color: "#6E7681", callback: v => fmtM(v) }, grid: gr }, x: { stacked: true, ticks: { font: fo.font, color: "#8B949E" }, grid: { display: false } } } } });
+        }
+
+        function upCharts() {
+            if (charts.cReg) { charts.cReg.data.datasets[0].data = S.by_region.map(d => d.allocated); charts.cReg.data.datasets[1].data = S.by_region.map(d => d.disbursed); charts.cReg.update(); }
+            if (charts.cPie) { charts.cPie.data.datasets[0].data = S.by_work.map(d => d.allocated); charts.cPie.update(); }
+            if (charts.cWork) { charts.cWork.data.datasets[0].data = S.by_work.map(d => d.allocated); charts.cWork.data.datasets[1].data = S.by_work.map(d => d.disbursed); charts.cWork.update(); }
+            if (charts.cRW) { const regs = S.by_region.map(d => d.region_name); charts.cRW.data.datasets.forEach((ds, i) => { const wi = WORKS[i]; ds.data = regs.map(r => { const f = S.by_rw.find(d => d.region_name === r && d.work_id === wi); return f ? f.allocated : 0; }); }); charts.cRW.update(); }
+        }
+
+        /* ===== DETAIL PIVOT ===== */
+        function initFilt() {
+            const rs = document.getElementById("fReg"), ws = document.getElementById("fWork");
+            S.by_region.forEach(d => { const o = document.createElement("option"); o.value = d.region_name; o.textContent = d.region_name; rs.appendChild(o); });
+            WORKS.forEach(wi => { const o = document.createElement("option"); o.value = wi; o.textContent = SW[wi]; ws.appendChild(o); });
+        }
+
+        function fdt() {
+            const reg = document.getElementById("fReg").value;
+            const wid = document.getElementById("fWork").value;
+            const stat = document.getElementById("fStat").value;
+            const q = document.getElementById("fQ").value.trim();
+            const srt = document.getElementById("fSort").value;
+
+            if (dtView === "pivot") {
+                dtf = pivotData.filter(d => {
+                    if (reg && d.region_name !== reg) return false;
+                    if (q && !d.province_name.includes(q)) return false;
+                    if (stat === "done" && !(d.total_disb >= d.total_alloc && d.total_alloc > 0)) return false;
+                    if (stat === "part" && !(d.total_disb > 0 && d.total_disb < d.total_alloc)) return false;
+                    if (stat === "none" && d.total_disb > 0) return false;
+                    return true;
+                });
+                if (srt === "ad") dtf.sort((a, b) => b.total_alloc - a.total_alloc);
+                else if (srt === "dd") dtf.sort((a, b) => b.total_disb - a.total_disb);
+                else if (srt === "pd") dtf.sort((a, b) => (b.total_disb / b.total_alloc) - (a.total_disb / a.total_alloc));
+                else if (srt === "pa") dtf.sort((a, b) => (a.total_disb / a.total_alloc) - (b.total_disb / b.total_alloc));
+            } else {
+                dtf = recs.filter(d => {
+                    if (reg && d.region_name !== reg) return false;
+                    if (wid && String(d.work_id) !== String(wid)) return false;
+                    if (stat === "done" && !(d.disbursed_amount >= d.allocated_amount && d.allocated_amount > 0)) return false;
+                    if (stat === "part" && !(d.disbursed_amount > 0 && d.disbursed_amount < d.allocated_amount)) return false;
+                    if (stat === "none" && d.disbursed_amount > 0) return false;
+                    if (q && !d.province_name.includes(q)) return false;
+                    return true;
+                });
+                if (srt === "ad") dtf.sort((a, b) => b.allocated_amount - a.allocated_amount);
+                else if (srt === "dd") dtf.sort((a, b) => b.disbursed_amount - a.disbursed_amount);
+            }
+            dtp_ = 1; rdtbl();
+        }
+
+        function cdt() { ["fReg", "fWork", "fStat"].forEach(id => document.getElementById(id).value = ""); document.getElementById("fQ").value = ""; document.getElementById("fSort").value = "ad"; fdt(); }
+        function dtp(d) { const mx = Math.ceil(dtf.length / DTP) || 1; dtp_ = Math.max(1, Math.min(mx, dtp_ + d)); rdtbl(); }
+
+        function setView(v) {
+            dtView = v;
+            document.querySelectorAll(".vbtn").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+            const wf = document.getElementById("fWork");
+            wf.style.display = v === "pivot" ? "none" : "";
+            document.getElementById("fWork").parentElement.style.display = v === "pivot" ? "none" : "";
+            fdt();
+        }
+
+        function rdtbl() {
+            const s = (dtp_ - 1) * DTP, pg = dtf.slice(s, s + DTP), mx = Math.ceil(dtf.length / DTP) || 1;
+            document.getElementById("fcnt").textContent = "แสดง " + dtf.length + " รายการ";
+            document.getElementById("dInfo").textContent = "หน้า " + dtp_ + " / " + mx;
+            document.getElementById("dTotal").textContent = (s + 1) + "–" + Math.min(dtp_ * DTP, dtf.length) + " จาก " + dtf.length;
+            document.getElementById("dPrev").disabled = dtp_ <= 1; document.getElementById("dNext").disabled = dtp_ >= mx;
+
+            let html = "";
+            if (dtView === "pivot") {
+                // Header: จังหวัด | ภาค | รวมทั้งหมด | W1 alloc/disb | W2 | W3 | W4 | W5
+                let hdr = "<thead>";
+                hdr += "<tr class=\"grp-hdr\"><th rowspan=\"2\">#</th><th rowspan=\"2\">หน่วย/จังหวัด</th><th rowspan=\"2\">ภาค</th><th rowspan=\"2\" class=\"r\">จัดสรรรวม</th><th rowspan=\"2\" class=\"r\">เบิกรวม</th><th rowspan=\"2\">%รวม</th>";
+                WORKS.forEach((wi, i) => hdr += "<th colspan=\"3\" style=\"color:" + WC[i] + ";border-left:1px solid var(--bd2)\"><span class=\"w-dot\" style=\"background:" + WC[i] + "\"></span>" + SW[wi] + "</th>");
+                hdr += "</tr><tr class=\"grp-hdr\">";
+                WORKS.forEach(() => hdr += "<th class=\"r\" style=\"border-left:1px solid var(--bd2)\">จัดสรร</th><th class=\"r\">เบิก</th><th>%</th>");
+                hdr += "</tr></thead>";
+                const rows = pg.map((d, i) => {
+                    const p = parseFloat(pct(d.total_disb, d.total_alloc));
+                    const stcls = p >= 100 ? "bdg-done" : p > 0 ? "bdg-part" : "bdg-none", stxt = p >= 100 ? "ครบ" : p > 0 ? "บางส่วน" : "รอเบิก";
+                    const c = rc(d.region_name);
+                    let row = "<tr><td style=\"color:var(--tx3);font-family:var(--mono);font-size:10px\">" + (s + i + 1) + "</td>";
+                    row += "<td class=\"hi\">" + tr(d.province_name, 20) + "</td>";
+                    row += "<td><span style=\"color:" + c + ";font-family:var(--mono);font-size:10px;background:" + c + "18;padding:2px 6px;border-radius:3px\">" + d.region_name + "</span></td>";
+                    row += "<td class=\"r hi\">" + fmt(d.total_alloc) + "</td>";
+                    row += "<td class=\"r\" style=\"color:var(--green)\">" + fmt(d.total_disb) + "</td>";
+                    row += "<td><span class=\"bdg " + stcls + "\">" + stxt + "</span></td>";
+                    WORKS.forEach((wi, ii) => {
+                        const wa = d["w" + wi + "_alloc"] || 0, wd = d["w" + wi + "_disb"] || 0;
+                        const wp = pct(wd, wa);
+                        const bc = WC[ii];
+                        row += "<td class=\"r\" style=\"border-left:1px solid var(--bd2)\">" + (wa > 0 ? fmt(wa) : "<span style=\"color:var(--tx3)\">-</span>") + "</td>";
+                        row += "<td class=\"r\" style=\"color:" + (wd > 0 ? "var(--green)" : "var(--tx3)") + "\">" + (wa > 0 ? fmt(wd) : "<span style=\"color:var(--tx3)\">-</span>") + "</td>";
+                        row += "<td>" + (wa > 0 ? "<div class=\"ib\"><div class=\"ib-t\"><div class=\"ib-f g\" style=\"width:" + wp + "%;background:" + bc + "\"></div></div><span class=\"ibp\">" + wp + "%</span></div>" : "<span style=\"color:var(--tx3)\">-</span>") + "</td>";
+                    });
+                    row += "</tr>";
+                    return row;
+                });
+                html = hdr + "<tbody>" + rows.join("") + "</tbody>";
+            } else {
+                // Original row view
+                const mxA = Math.max(...dtf.map(d => d.allocated_amount), 1);
+                const rows = pg.map((d, i) => {
+                    const wi = S.by_work.findIndex(w => w.work_id === d.work_id);
+                    const p = parseFloat(pct(d.disbursed_amount, d.allocated_amount));
+                    const stcls = p >= 100 ? "bdg-done" : p > 0 ? "bdg-part" : "bdg-none", stxt = p >= 100 ? "เบิกครบ" : p > 0 ? "บางส่วน" : "รอเบิก";
+                    return "<tr><td style=\"color:var(--tx3);font-family:var(--mono);font-size:10px\">" + (s + i + 1) + "</td><td class=\"hi\">" + tr(d.province_name, 22) + "</td><td><span style=\"color:" + rc(d.region_name) + ";font-family:var(--mono);font-size:10px;background:" + rc(d.region_name) + "18;padding:2px 7px;border-radius:3px\">" + d.region_name + "</span></td><td style=\"color:" + wc(wi) + ";font-size:11px\">" + SW[d.work_id] + "</td><td class=\"r hi\">" + fmt(d.allocated_amount) + "</td><td><div class=\"ib\"><div class=\"ib-t\"><div class=\"ib-f\" style=\"width:" + (d.allocated_amount / mxA * 100).toFixed(1) + "%\"></div></div></div></td><td class=\"r\" style=\"color:var(--green)\">" + fmt(d.disbursed_amount) + "</td>" + barcell(d.disbursed_amount, d.allocated_amount, "g") + "<td><span class=\"bdg " + stcls + "\">" + stxt + "</span></td></tr>";
+                });
+                html = th([["#"], ["หน่วย/จังหวัด"], ["ภาค"], ["งาน"], ["จัดสรร (บ.)", "r"], ["สัดส่วน"], ["เบิกจ่าย (บ.)", "r"], ["% เบิก"], ["สถานะ"]]) + "<tbody>" + rows.join("") + "</tbody>";
+            }
+            document.getElementById("tDet").innerHTML = html;
+        }
+
+        /* IMPORT */
+        function dov(e, on) { e.preventDefault(); document.getElementById("dropz").classList.toggle("drag", !!on); }
+        function ddr(e) { e.preventDefault(); document.getElementById("dropz").classList.remove("drag"); const f = e.dataTransfer.files[0]; if (f) hfile(f); }
+        function hfile(file) {
+            if (!file || !file.name.endsWith(".xlsx")) { alert("กรุณาเลือกไฟล์ .xlsx"); return; }
+            const rd = new FileReader();
+            rd.onload = e => { try { const wb = XLSX.read(e.target.result, { type: "array" }); const ws = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(ws, { defval: "" }); procImp(file.name, rows); } catch (err) { alert("อ่านไฟล์ไม่สำเร็จ: " + err.message); } };
+            rd.readAsArrayBuffer(file);
+        }
+        function procImp(fname, rows) {
+            const res = document.getElementById("impres"); res.classList.add("on");
+            const log = []; let ok = 0, miss = 0; pp = [];
+            const idx = {}; recs.forEach((r, i) => { idx[r.province_code + "|" + r.work_id] = i; });
+            let mon = "";
+            rows.forEach((row, ri) => {
+                const pc = parseInt(row.province_code || row.PROVINCE_CODE || 0);
+                const wi = parseInt(row.work_id || row.WORK_ID || 0);
+                const amt = parseFloat(row.disbursed_amount || row.DISBURSED_AMOUNT || 0) || 0;
+                const m = String(row.disbursement_month || row.DISBURSEMENT_MONTH || "").substring(0, 7);
+                if (m) mon = m;
+                if (!pc || !wi) { log.push({ c: "lerr", m: "แถว " + (ri + 2) + ": ไม่พบ province_code/work_id" }); return; }
+                const key = pc + "|" + wi;
+                if (idx[key] === undefined) { miss++; log.push({ c: "lwarn", m: "ไม่พบ province=" + pc + " work=" + wi }); return; }
+                pp.push({ i: idx[key], amt }); ok++;
+                if (ok <= 40) log.push({ c: "lok", m: "[" + pc + "/W" + wi + "] " + fmt(amt) + " บ." });
+            });
+            if (rows.length > 40) log.push({ c: "", m: "... และอีก " + (rows.length - 40) + " รายการ" });
+            document.getElementById("irF").textContent = fname; document.getElementById("irR").textContent = rows.length;
+            document.getElementById("irOk").textContent = ok; document.getElementById("irMs").textContent = miss;
+            document.getElementById("irMon").textContent = mon || "-";
+            document.getElementById("irLog").innerHTML = log.map(l => "<li class=\"" + l.c + "\">" + l.m + "</li>").join("");
+            document.getElementById("btnOk").style.display = ok > 0 ? "block" : "none";
+            if (mon) S.last_update = mon;
+        }
+        function doImport() {
+            if (!pp.length) return;
+            pp.forEach(p => { recs[p.i].disbursed_amount = p.amt; });
+            recomp(); renderAll();
+            const n = pp.length;
+            hist.unshift({ time: new Date().toLocaleTimeString("th-TH"), count: n, mon: S.last_update });
+            document.getElementById("hist").innerHTML = hist.map(h => "<div class=\"hist-item\"><span class=\"bdg bdg-done\">+" + h.count + " แถว</span><span>" + h.mon + "</span><span style=\"margin-left:auto;color:var(--tx3)\">" + h.time + "</span></div>").join("");
+            document.getElementById("impres").classList.remove("on"); document.getElementById("fin").value = ""; pp = [];
+            alert("✓ อัพเดท Dashboard สำเร็จ " + n + " รายการ!");
+        }
+        function cancelImp() { document.getElementById("impres").classList.remove("on"); document.getElementById("fin").value = ""; pp = []; }
+        function dlUpd() { const rows = ["province_code,province_name,region_name,work_id,work_name,allocated_amount,disbursed_amount"]; recs.forEach(d => rows.push([d.province_code, '"' + d.province_name + '"', '"' + d.region_name + '"', d.work_id, '"' + d.work_name + '"', d.allocated_amount, d.disbursed_amount || 0].join(","))); dl(rows.join("\n"), "disbursements_updated.csv"); }
+        function dlTpl() { const rows = ["province_code,work_id,disbursed_amount,disbursement_month"]; recs.forEach(d => rows.push([d.province_code, d.work_id, "", ""].join(","))); dl(rows.join("\n"), "template_disbursement.csv"); }
+        function dlAll() { const rows = ["province_code,province_name,region_name,work_id,work_name,allocated_amount,disbursed_amount"]; recs.forEach(d => rows.push([d.province_code, '"' + d.province_name + '"', '"' + d.region_name + '"', d.work_id, '"' + d.work_name + '"', d.allocated_amount, d.disbursed_amount || 0].join(","))); dl(rows.join("\n"), "all_records.csv"); }
+        function dl(content, fname) { const b = new Blob(["\uFEFF" + content], { type: "text/csv;charset=utf-8" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = fname; a.click(); }
+        function goTab(tab, el) { document.querySelectorAll(".pg").forEach(p => p.classList.remove("on")); document.querySelectorAll(".nb").forEach(b => b.classList.remove("on")); document.getElementById("pg-" + tab).classList.add("on"); el.classList.add("on"); }
+
+        recomp(); initFilt(); setView("pivot"); renderAll();
+
+    </script>
+</body>
+
+</html>
