@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Q&A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Syne:wght@700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1c1c28;
+      --border: rgba(255, 255, 255, 0.07);
+      --border2: rgba(255, 255, 255, 0.14);
+      --text: #f0eeff;
+      --muted: rgba(240, 238, 255, 0.45);
+      --accent: #7c6af7;
+      --accent2: #a897ff;
+      --accent-glow: rgba(124, 106, 247, 0.25);
+      --danger: #f76a6a;
+      --success: #5cd98a;
+      --warn: #f7b76a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1rem, 5vw, 3rem);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text) 30%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+
+    .header p {
+      margin-top: 0.5rem;
+      font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(1.25rem, 5vw, 2rem);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.6rem 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      min-height: 42px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .status-dot.recording {
+      background: var(--danger);
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.success {
+      background: var(--success);
+    }
+
+    .status-dot.sending {
+      background: var(--warn);
+    }
+
+    .status-dot.error {
+      background: var(--danger);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    .mic-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1rem 0;
+    }
+
+    .mic-btn {
+      position: relative;
+      width: clamp(100px, 28vw, 140px);
+      height: clamp(100px, 28vw, 140px);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: var(--surface2);
+      border: 2px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+
+    .mic-btn:hover {
+      border-color: var(--accent);
+      transform: scale(1.04);
+    }
+
+    .mic-btn:active {
+      transform: scale(0.96);
+    }
+
+    .mic-btn.recording {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 12px rgba(247, 106, 106, 0.08), 0 0 0 24px rgba(247, 106, 106, 0.04);
+      animation: ring-pulse 1.5s infinite;
+    }
+
+    @keyframes ring-pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 8px rgba(247, 106, 106, 0.1), 0 0 0 20px rgba(247, 106, 106, 0.04);
+      }
+
+      50% {
+        box-shadow: 0 0 0 16px rgba(247, 106, 106, 0.06), 0 0 0 32px rgba(247, 106, 106, 0.02);
+      }
+    }
+
+    .mic-icon {
+      width: clamp(38px, 10vw, 52px);
+      height: clamp(38px, 10vw, 52px);
+      transition: all 0.2s;
+    }
+
+    .mic-icon path,
+    .mic-icon rect,
+    .mic-icon circle {
+      transition: fill 0.2s, stroke 0.2s;
+    }
+
+    .mic-btn.recording .mic-icon {
+      filter: drop-shadow(0 0 8px rgba(247, 106, 106, 0.6));
+    }
+
+    .mic-btn.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .mic-label {
+      font-size: clamp(0.78rem, 2.5vw, 0.88rem);
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .mic-label span {
+      display: block;
+    }
+
+    .timer {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 700;
+      color: var(--danger);
+      letter-spacing: 0.04em;
+      min-height: 2.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .timer.active {
+      opacity: 1;
+    }
+
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 40px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .waveform.active {
+      opacity: 1;
+    }
+
+    .wave-bar {
+      width: 4px;
+      border-radius: 2px;
+      background: var(--accent);
+      height: 6px;
+      animation: wave 0.8s ease-in-out infinite;
+    }
+
+    .wave-bar:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .wave-bar:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .wave-bar:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    .wave-bar:nth-child(4) {
+      animation-delay: 0.3s;
+    }
+
+    .wave-bar:nth-child(5) {
+      animation-delay: 0.2s;
+    }
+
+    .wave-bar:nth-child(6) {
+      animation-delay: 0.1s;
+    }
+
+    .wave-bar:nth-child(7) {
+      animation-delay: 0s;
+    }
+
+    @keyframes wave {
+
+      0%,
+      100% {
+        height: 6px;
+      }
+
+      50% {
+        height: 32px;
+      }
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.25rem 0;
+    }
+
+    .send-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .webhook-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .webhook-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .webhook-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      color: var(--text);
+      font-family: 'Space Grotesk', monospace;
+      font-size: clamp(0.72rem, 2vw, 0.8rem);
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+
+    .webhook-input:focus {
+      border-color: var(--accent);
+    }
+
+    .webhook-input::placeholder {
+      color: rgba(240, 238, 255, 0.2);
+    }
+
+    .send-btn {
+      width: 100%;
+      padding: clamp(0.7rem, 2.5vw, 0.9rem);
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .send-btn.active {
+      opacity: 1;
+      pointer-events: auto;
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+
+    .send-btn.active:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+    }
+
+    .send-btn.active:active {
+      transform: translateY(0);
+    }
+
+    .send-btn.sending {
+      animation: shimmer 1s infinite;
+    }
+
+    @keyframes shimmer {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    .audio-preview {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.9rem;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .audio-preview.visible {
+      display: flex;
+    }
+
+    .audio-preview audio {
+      flex: 1;
+      height: 32px;
+      min-width: 0;
+    }
+
+    .audio-preview audio::-webkit-media-controls-panel {
+      background: var(--surface2);
+    }
+
+    .response-audio {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .response-audio.visible {
+      display: flex;
+    }
+
+    .response-audio-label {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    .response-audio audio {
+      width: 100%;
+      height: 36px;
+    }
+
+    .play-again-btn {
+      align-self: flex-start;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .play-again-btn:hover {
+      background: var(--accent2);
+    }
+
+    .response-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(1.25rem, 5vw, 2rem);
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .response-card.visible {
+      display: flex;
+    }
+
+    .response-label {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    .response-text {
+      font-size: clamp(0.9rem, 2.8vw, 1rem);
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.72rem;
+      color: rgba(240, 238, 255, 0.2);
+      letter-spacing: 0.06em;
+    }
+
+    @media (max-width: 360px) {
+      .webhook-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .webhook-input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Voice Q&A</h1>
+      <p>กดค้างอัด · ปล่อยมือหยุด</p>
+    </div>
+
+    <div class="card">
+      <div class="status-bar">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">พร้อมใช้งาน — กดปุ่มไมค์เพื่อเริ่ม</span>
+      </div>
+
+      <div class="mic-section">
+        <div class="waveform" id="waveform">
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+
+        <button class="mic-btn" id="micBtn" aria-label="กดค้างเพื่ออัดเสียง" onmousedown="startRec()"
+          onmouseup="stopRec()" onmouseleave="stopRec()" ontouchstart="startRec(event)" ontouchend="stopRec(event)"
+          ontouchcancel="stopRec(event)">
+          <svg class="mic-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="18" y="4" width="16" height="26" rx="8" fill="none" stroke="#7c6af7" stroke-width="2.5" />
+            <path d="M10 26c0 8.837 7.163 16 16 16s16-7.163 16-16" stroke="#7c6af7" stroke-width="2.5"
+              stroke-linecap="round" />
+            <line x1="26" y1="42" x2="26" y2="48" stroke="#7c6af7" stroke-width="2.5" stroke-linecap="round" />
+            <line x1="18" y1="48" x2="34" y2="48" stroke="#7c6af7" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <div class="mic-label">
+          <span id="micLabelMain">ค้างเพื่ออัดเสียง</span>
+        </div>
+
+        <div class="timer" id="timer">00:00</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="send-section" style="margin-top: 1rem;">
+        <div class="webhook-row">
+          <span class="webhook-label">Webhook</span>
+          <input class="webhook-input" id="webhookUrl" type="url" placeholder="https://your-n8n.app/webhook/xxx"
+            value="http://localhost:5678/webhook/voice-query">
+        </div>
+
+        <div class="audio-preview" id="audioPreview">
+          <audio id="audioPlayer" controls></audio>
+        </div>
+
+        <button class="send-btn" id="sendBtn" onclick="sendAudio()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          ส่งไป n8n
+        </button>
+      </div>
+    </div>
+
+    <div class="response-audio" id="responseAudio">
+      <div class="response-audio-label">🔊 เสียงตอบกลับ</div>
+      <audio id="responsePlayer" controls></audio>
+      <button class="play-again-btn" onclick="replayResponse()">▶ เล่นซ้ำ</button>
+    </div>
+
+    <div class="response-card" id="responseCard">
+      <div class="response-label">Response</div>
+      <div class="response-text" id="responseText"></div>
+    </div>
+
+    <div class="footer">Voice Q&A · n8n Integration</div>
+  </div>
+
+  <script>
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioBlob = null;
+    let isRecording = false;
+    let timerInterval = null;
+    let seconds = 0;
+    let stream = null;
+    let lastResponseAudioCtx = null;
+    let lastPCMBase64 = null;
+    let lastSampleRate = 24000;
+
+    const micBtn = document.getElementById('micBtn');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const timerEl = document.getElementById('timer');
+    const waveform = document.getElementById('waveform');
+    const micLabelMain = document.getElementById('micLabelMain');
+    const sendBtn = document.getElementById('sendBtn');
+    const audioPreview = document.getElementById('audioPreview');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const responseCard = document.getElementById('responseCard');
+    const responseText = document.getElementById('responseText');
+    const responseAudioDiv = document.getElementById('responseAudio');
+    const responsePlayer = document.getElementById('responsePlayer');
+
+    function setStatus(type, text) {
+      statusDot.className = 'status-dot ' + type;
+      statusText.textContent = text;
+    }
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const ss = (s % 60).toString().padStart(2, '0');
+      return m + ':' + ss;
+    }
+
+    async function startRec(e) {
+      if (e) e.preventDefault();
+      if (isRecording) return;
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        audioBlob = null;
+
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = handleStop;
+        mediaRecorder.start(100);
+
+        isRecording = true;
+        seconds = 0;
+        micBtn.classList.add('recording');
+        waveform.classList.add('active');
+        timerEl.classList.add('active');
+        timerEl.textContent = '00:00';
+        micLabelMain.textContent = 'กำลังอัด... ปล่อยมือเพื่อหยุด';
+        setStatus('recording', 'กำลังอัดเสียง...');
+        sendBtn.classList.remove('active');
+        audioPreview.classList.remove('visible');
+        responseCard.classList.remove('visible');
+
+        timerInterval = setInterval(() => {
+          seconds++;
+          timerEl.textContent = formatTime(seconds);
+        }, 1000);
+
+      } catch (err) {
+        setStatus('error', 'ไม่สามารถเข้าถึงไมค์ได้ — เช็ค permission');
+      }
+    }
+
+    function stopRec(e) {
+      if (e) e.preventDefault();
+      if (!isRecording) return;
+
+      isRecording = false;
+      clearInterval(timerInterval);
+      mediaRecorder.stop();
+      stream.getTracks().forEach(t => t.stop());
+
+      micBtn.classList.remove('recording');
+      waveform.classList.remove('active');
+      micLabelMain.textContent = 'กดค้างเพื่ออัดเสียง';
+      setStatus('', 'หยุดอัดแล้ว — กำลังเตรียมไฟล์...');
+    }
+
+    function handleStop() {
+      audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(audioBlob);
+      audioPlayer.src = url;
+      audioPreview.classList.add('visible');
+      timerEl.classList.remove('active');
+      sendBtn.classList.add('active');
+      setStatus('success', `อัดเสร็จ ${formatTime(seconds)} — พร้อมส่ง`);
+    }
+
+    async function playPCM(base64data, sampleRate) {
+      lastPCMBase64 = base64data;
+      lastSampleRate = sampleRate;
+
+      const binary = atob(base64data);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const samples = bytes.length / 2;
+
+      // สร้าง WAV blob เพื่อใส่ใน audio element ด้วย
+      const wavBuffer = pcmToWav(bytes, sampleRate);
+      const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+      const wavUrl = URL.createObjectURL(wavBlob);
+      responsePlayer.src = wavUrl;
+      responseAudioDiv.classList.add('visible');
+
+      // auto-play ผ่าน audio element
+      try {
+        await responsePlayer.play();
+        setStatus('success', 'กำลังเล่นเสียงตอบกลับ...');
+        responsePlayer.onended = () => setStatus('success', 'เล่นเสร็จแล้ว — กดฟังซ้ำได้');
+      } catch (e) {
+        // ถ้า autoplay โดน block ก็ยังมีปุ่มกดฟัง
+        setStatus('success', 'ได้รับเสียงแล้ว — กด ▶ เพื่อฟัง');
+      }
+    }
+
+    function pcmToWav(pcmBytes, sampleRate) {
+      const numChannels = 1;
+      const bitsPerSample = 16;
+      const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+      const blockAlign = numChannels * bitsPerSample / 8;
+      const dataSize = pcmBytes.length;
+      const buffer = new ArrayBuffer(44 + dataSize);
+      const view = new DataView(buffer);
+
+      const writeString = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + dataSize, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, byteRate, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, bitsPerSample, true);
+      writeString(36, 'data');
+      view.setUint32(40, dataSize, true);
+      new Uint8Array(buffer, 44).set(pcmBytes);
+      return buffer;
+    }
+
+    function replayResponse() {
+      if (responsePlayer.src) {
+        responsePlayer.currentTime = 0;
+        responsePlayer.play();
+        setStatus('success', 'กำลังเล่นซ้ำ...');
+      }
+    }
+
+    async function sendAudio() {
+      const url = document.getElementById('webhookUrl').value.trim();
+      if (!url) { setStatus('error', 'ใส่ Webhook URL ก่อนนะ'); return; }
+      if (!audioBlob) { setStatus('error', 'ยังไม่มีไฟล์เสียง'); return; }
+
+      setStatus('sending', 'กำลังส่งไป n8n...');
+      sendBtn.classList.add('sending');
+      sendBtn.innerHTML = 'กำลังส่ง...';
+      responseCard.classList.remove('visible');
+      responseAudioDiv.classList.remove('visible');
+
+      const form = new FormData();
+      form.append('audio', audioBlob, 'recording.webm');
+
+      try {
+        const res = await fetch(url, { method: 'POST', body: form });
+        const contentType = res.headers.get('content-type') || '';
+        let json = null;
+
+        if (contentType.includes('application/json')) {
+          json = await res.json();
+        } else {
+          try { json = JSON.parse(await res.text()); } catch { json = null; }
+        }
+
+        if (json && json.audio) {
+          const mime = json.mimeType || 'audio/L16;codec=pcm;rate=24000';
+          const rateMatch = mime.match(/rate=(\d+)/);
+          const sampleRate = rateMatch ? parseInt(rateMatch[1]) : 24000;
+          if (json.text) {
+            responseText.textContent = json.text;
+            responseCard.classList.add('visible');
+          }
+          setStatus('sending', 'กำลังโหลดเสียง...');
+          await playPCM(json.audio, sampleRate);
+        } else {
+          const reply = json ? (json.text || json.message || json.response || JSON.stringify(json)) : 'ได้รับ response แล้วแต่ไม่มี audio';
+          setStatus('success', 'ได้รับคำตอบจาก n8n แล้ว');
+          responseText.textContent = reply;
+          responseCard.classList.add('visible');
+        }
+
+      } catch (err) {
+        setStatus('error', 'ส่งไม่ได้: ' + err.message);
+        console.error('Fetch error:', err);
+      } finally {
+        sendBtn.classList.remove('sending');
+        sendBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> ส่งไป n8n`;
+      }
+    }
+  </script>
+</body>
+
+</html>

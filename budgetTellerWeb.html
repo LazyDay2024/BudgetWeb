@@ -1107,6 +1107,7 @@
                 <button class="nb" onclick="goTab('byregion',this)">ตามภาค</button>
                 <button class="nb" onclick="goTab('detail',this)">รายหน่วย</button>
                 <button class="nb" onclick="goTab('import',this)">&#8679; อัพเดทรายเดือน</button>
+                <a class="nb" href="YOUR_VOICE_PAGE_LINK_HERE">&#127908; สอบถามด้วยเสียง</a>
             </nav>
             <div class="hright">
                 <span class="chip" id="hUpd">-</span>
@@ -1233,7 +1234,8 @@
             <div class="ctit">&#8679; นำเข้าผลการเบิกจ่ายรายเดือน</div>
             <div class="infobox"><strong>รูปแบบไฟล์ที่รองรับ (.xlsx):</strong> ต้องมีคอลัมน์ <code>province_code</code>,
                 <code>work_id</code>, <code>disbursed_amount</code>, <code>disbursement_month</code><br>ระบบจะ
-                <strong>แทนที่</strong> ยอดเบิกจ่ายด้วยข้อมูลใหม่ทั้งหมด — จับคู่ด้วย province_code + work_id</div>
+                <strong>แทนที่</strong> ยอดเบิกจ่ายด้วยข้อมูลใหม่ทั้งหมด — จับคู่ด้วย province_code + work_id
+            </div>
             <div class="dropz" id="dropz" onclick="document.getElementById('fin').click()" ondragover="dov(event,1)"
                 ondragleave="dov(event,0)" ondrop="ddr(event)">
                 <input type="file" id="fin" accept=".xlsx" onchange="hfile(this.files[0])">
@@ -1271,6 +1273,7 @@
             </div>
         </div>
     </div>
+
 
     <footer>ศูนย์ประสานการปฏิบัติที่ 4 กองอำนวยการรักษาความมั่นคงภายในราชอาณาจักร (กอ.รมน.) — ปีงบประมาณ 2569</footer>
 
