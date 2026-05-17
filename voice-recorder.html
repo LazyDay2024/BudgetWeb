@@ -633,6 +633,17 @@
     const responseAudioDiv = document.getElementById('responseAudio');
     const responsePlayer = document.getElementById('responsePlayer');
 
+    // เพิ่ม function นี้เข้าไป
+    function speakText(text, onEnd) {
+      if (!text) return;
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'th-TH';
+      utt.rate = 1;
+      if (onEnd) utt.onend = onEnd;
+      speechSynthesis.speak(utt);
+    }
+
     function setStatus(type, text) {
       statusDot.className = 'status-dot ' + type;
       statusText.textContent = text;
@@ -759,6 +770,7 @@
       return buffer;
     }
 
+
     function replayResponse() {
       if (responsePlayer.src) {
         responsePlayer.currentTime = 0;
@@ -803,10 +815,11 @@
           setStatus('sending', 'กำลังโหลดเสียง...');
           await playPCM(json.audio, sampleRate);
         } else {
-          const reply = json ? (json.text || json.message || json.response || JSON.stringify(json)) : 'ได้รับ response แล้วแต่ไม่มี audio';
-          setStatus('success', 'ได้รับคำตอบจาก n8n แล้ว');
+          const reply = json ? (json.text || json.message || json.response || JSON.stringify(json)) : '...';
           responseText.textContent = reply;
           responseCard.classList.add('visible');
+          setStatus('success', 'กำลังอ่านเสียง...');
+          speakText(reply, () => setStatus('success', 'เล่นเสร็จ — กดฟังซ้ำได้'));
         }
 
       } catch (err) {
