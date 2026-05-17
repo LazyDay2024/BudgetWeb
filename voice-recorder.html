@@ -829,7 +829,7 @@
       form.append('audio', audioBlob, 'recording.webm');
 
       try {
-        const res = await fetch(url, { method: 'POST', body: form });
+        const res = await fetch(url, { method: "POST", headers: { "User-Agent": "n8n-voice-client" }, body: form });
         const contentType = res.headers.get('content-type') || '';
         let json = null;
 
@@ -880,7 +880,10 @@
       try {
         const res = await fetch(WEBHOOK_TEXT_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'n8n-voice-client'
+          },
           body: JSON.stringify({ text })
         });
 
