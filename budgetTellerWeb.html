@@ -137,6 +137,75 @@
             padding-left: 12px
         }
 
+        .nb-voice {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: var(--fn);
+            font-size: 12px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #1a1f3a 0%, #0d1b2e 100%);
+            border: 1px solid #2d4a7a;
+            border-radius: 8px;
+            padding: 0 14px;
+            margin: 10px 0 10px 8px;
+            cursor: pointer;
+            color: var(--blue);
+            white-space: nowrap;
+            height: 34px;
+            text-decoration: none;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nb-voice::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(88, 166, 255, .08), transparent);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .nb-voice:hover {
+            border-color: var(--blue);
+            color: #88c4ff;
+            box-shadow: 0 0 12px rgba(88, 166, 255, .15);
+        }
+
+        .nb-voice:hover::before {
+            opacity: 1;
+        }
+
+        .nb-voice:active {
+            transform: scale(.97);
+        }
+
+        .voice-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--blue);
+            box-shadow: 0 0 6px rgba(88, 166, 255, .6);
+            animation: vblink 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes vblink {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 6px rgba(88, 166, 255, .6);
+            }
+
+            50% {
+                opacity: .4;
+                box-shadow: 0 0 2px rgba(88, 166, 255, .2);
+            }
+        }
+
         .chip {
             font-family: var(--mono);
             font-size: 10px;
@@ -1107,7 +1176,10 @@
                 <button class="nb" onclick="goTab('byregion',this)">ตามภาค</button>
                 <button class="nb" onclick="goTab('detail',this)">รายหน่วย</button>
                 <button class="nb" onclick="goTab('import',this)">&#8679; อัพเดทรายเดือน</button>
-                <a class="nb" href="YOUR_VOICE_PAGE_LINK_HERE">&#127908; สอบถามด้วยเสียง</a>
+                <a class="nb-voice" href="voice-recorder.html" target="_blank">
+                    <div class="voice-dot"></div>
+                    สอบถามด้วยเสียง
+                </a>
             </nav>
             <div class="hright">
                 <span class="chip" id="hUpd">-</span>
